@@ -6,6 +6,14 @@
   <title>INOOS | Automatización del Informe de Junta Directiva</title>
   <meta name="description" content="Plataforma institucional de ingeniería clínica para la generación automatizada de informes de Junta Directiva en PowerPoint a partir de bases oncológicas Excel.">
   
+  <!-- Immediate Theme Initialization (Evita flash de estilo, por defecto claro) -->
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem('inoos-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,9 +46,16 @@
       <a href="/dashboard" class="nav-btn"><i class="fa-solid fa-chart-pie"></i> Cohorte Oncológica</a>
     </div>
 
-    <div class="status-badge" id="system-status">
-      <div class="status-dot"></div>
-      <span>Motor Clínico Activo</span>
+    <div class="navbar-actions">
+      <button id="theme-toggle-btn" class="theme-toggle-btn" type="button" aria-label="Cambiar tema de color" title="Alternar entre modo claro y oscuro">
+        <i class="fa-solid fa-moon" id="theme-icon"></i>
+        <span id="theme-label">Modo Oscuro</span>
+      </button>
+
+      <div class="status-badge" id="system-status">
+        <div class="status-dot"></div>
+        <span>Motor Clínico Activo</span>
+      </div>
     </div>
   </nav>
 

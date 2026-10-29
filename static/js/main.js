@@ -26,6 +26,32 @@ document.addEventListener('DOMContentLoaded', () => {
     terminal.scrollTop = terminal.scrollHeight;
   }
 
+  // 0. Manejo de Tema (Claro / Oscuro) - Predeterminado Claro
+  function initThemeToggle() {
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeLabel = document.getElementById('theme-label');
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('inoos-theme', theme);
+      const isDark = theme === 'dark';
+      if (themeIcon) themeIcon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+      if (themeLabel) themeLabel.textContent = isDark ? 'Modo Claro' : 'Modo Oscuro';
+    }
+
+    const currentTheme = localStorage.getItem('inoos-theme') || 'light';
+    applyTheme(currentTheme);
+
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const nextTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        applyTheme(nextTheme);
+      });
+    }
+  }
+  initThemeToggle();
+
   // 1. Cargar lista de archivos disponibles en el servidor
   async function loadAvailableFiles() {
     try {

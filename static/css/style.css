@@ -1,20 +1,133 @@
-:root {
+/* ======================================================================
+   TEMA CLARO (PREDETERMINADO / DEFAULT)
+   ====================================================================== */
+:root,
+[data-theme="light"] {
+  --theme-name: 'light';
+
+  /* Colores Institucionales INOOS */
   --primary: #8158A1;
-  --primary-hover: #9667bb;
-  --secondary: #47A9A1;
-  --secondary-hover: #54c5bb;
-  --accent: #E27396;
-  --bg-dark: #0D0F18;
-  --card-bg: rgba(23, 27, 44, 0.75);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --text-main: #FFFFFF;
-  --text-muted: #9DA3AE;
+  --primary-hover: #6f478c;
+  --secondary: #2E8B83;
+  --secondary-hover: #23716a;
+  --accent: #D2587D;
+  --color-dorado: #D97706;
+  --color-dorado-bg: rgba(217, 119, 6, 0.12);
+
+  /* Fondos y Superficies Modo Claro */
+  --bg-page: #F8FAFC;
+  --bg-page-gradient: 
+    radial-gradient(circle at 12% 12%, rgba(129, 88, 161, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 88% 88%, rgba(46, 139, 131, 0.08) 0%, transparent 45%),
+    #F8FAFC;
+  --navbar-bg: rgba(255, 255, 255, 0.95);
+  --navbar-border: #E2E8F0;
+  --navbar-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+
+  --card-bg: #FFFFFF;
+  --card-border: #E2E8F0;
+  --card-hover-border: rgba(129, 88, 161, 0.35);
+  --card-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  --card-hover-shadow: 0 8px 24px rgba(129, 88, 161, 0.12);
+
+  --input-bg: #F8FAFC;
+  --input-border: #CBD5E1;
+  --input-text: #0F172A;
+  --input-focus-border: #8158A1;
+
+  --btn-action-bg: #F1F5F9;
+  --btn-action-border: #CBD5E1;
+  --btn-action-text: #1E293B;
+  --btn-action-hover: #E2E8F0;
+
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --text-dim: #94A3B8;
+
+  --table-header-bg: #F1F5F9;
+  --table-row-hover: #F8FAFC;
+  --table-border: #E2E8F0;
+  --table-text: #1E293B;
+
+  --badge-bg: rgba(129, 88, 161, 0.12);
+  --badge-text: #8158A1;
+  --badge-border: rgba(129, 88, 161, 0.28);
+
+  --status-badge-bg: rgba(16, 185, 129, 0.12);
+  --status-badge-text: #047857;
+  --status-badge-border: rgba(16, 185, 129, 0.3);
+
+  --terminal-bg: #0F172A;
+  --terminal-text: #E2E8F0;
+
   --success: #10B981;
   --warning: #F59E0B;
   --danger: #EF4444;
   --radius-lg: 16px;
   --radius-md: 10px;
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ======================================================================
+   TEMA OSCURO (MODO ALTERNO)
+   ====================================================================== */
+[data-theme="dark"] {
+  --theme-name: 'dark';
+
+  /* Colores Institucionales INOOS */
+  --primary: #8158A1;
+  --primary-hover: #9667bb;
+  --secondary: #47A9A1;
+  --secondary-hover: #54c5bb;
+  --accent: #E27396;
+  --color-dorado: #FACC15;
+  --color-dorado-bg: rgba(250, 204, 21, 0.2);
+
+  /* Fondos y Superficies Modo Oscuro */
+  --bg-page: #0D0F18;
+  --bg-page-gradient: 
+    radial-gradient(circle at 15% 15%, rgba(129, 88, 161, 0.25) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(71, 169, 161, 0.2) 0%, transparent 45%),
+    #0D0F18;
+  --navbar-bg: rgba(13, 15, 24, 0.85);
+  --navbar-border: rgba(255, 255, 255, 0.08);
+  --navbar-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+  --card-bg: rgba(23, 27, 44, 0.78);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-hover-border: rgba(129, 88, 161, 0.35);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  --card-hover-shadow: 0 12px 35px rgba(129, 88, 161, 0.15);
+
+  --input-bg: rgba(23, 27, 44, 0.9);
+  --input-border: rgba(255, 255, 255, 0.12);
+  --input-text: #FFFFFF;
+  --input-focus-border: var(--secondary);
+
+  --btn-action-bg: rgba(255, 255, 255, 0.08);
+  --btn-action-border: rgba(255, 255, 255, 0.12);
+  --btn-action-text: #FFFFFF;
+  --btn-action-hover: rgba(255, 255, 255, 0.15);
+
+  --text-main: #FFFFFF;
+  --text-muted: #9DA3AE;
+  --text-dim: #64748B;
+
+  --table-header-bg: rgba(255, 255, 255, 0.04);
+  --table-row-hover: rgba(255, 255, 255, 0.02);
+  --table-border: rgba(255, 255, 255, 0.06);
+  --table-text: #E2E8F0;
+
+  --badge-bg: rgba(129, 88, 161, 0.2);
+  --badge-text: #d1b5ea;
+  --badge-border: rgba(129, 88, 161, 0.4);
+
+  --status-badge-bg: rgba(16, 185, 129, 0.15);
+  --status-badge-text: #34D399;
+  --status-badge-border: rgba(16, 185, 129, 0.3);
+
+  --terminal-bg: #090B10;
+  --terminal-text: #A0AEC0;
 }
 
 * {
@@ -25,14 +138,12 @@
 }
 
 body {
-  background: var(--bg-dark);
-  background-image: 
-    radial-gradient(circle at 15% 15%, rgba(129, 88, 161, 0.25) 0%, transparent 40%),
-    radial-gradient(circle at 85% 85%, rgba(71, 169, 161, 0.2) 0%, transparent 45%);
+  background: var(--bg-page-gradient);
   color: var(--text-main);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Header */
@@ -40,13 +151,15 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.2rem 3rem;
-  background: rgba(13, 15, 24, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--card-border);
+  padding: 1rem 3rem;
+  background: var(--navbar-bg);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--navbar-border);
+  box-shadow: var(--navbar-shadow);
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: var(--transition);
 }
 
 .brand-container {
@@ -67,7 +180,7 @@ body {
   width: auto;
   max-width: 140px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
 }
 
 .brand-company-sub {
@@ -82,13 +195,13 @@ body {
 .brand-divider {
   width: 1px;
   height: 36px;
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--card-border);
 }
 
 .brand-title {
   font-size: 1.22rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-main);
   letter-spacing: -0.2px;
 }
 
@@ -97,13 +210,46 @@ body {
   color: var(--text-muted);
 }
 
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Botón Alternar Tema (Claro / Oscuro) */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--btn-action-bg);
+  border: 1px solid var(--btn-action-border);
+  color: var(--btn-action-text);
+  transition: var(--transition);
+  outline: none;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--btn-action-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.theme-toggle-btn i {
+  font-size: 0.9rem;
+}
+
 .status-badge {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34D399;
+  background: var(--status-badge-bg);
+  border: 1px solid var(--status-badge-border);
+  color: var(--status-badge-text);
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 0.82rem;
@@ -113,9 +259,9 @@ body {
 .status-dot {
   width: 8px;
   height: 8px;
-  background: #34D399;
+  background: var(--status-badge-text);
   border-radius: 50%;
-  box-shadow: 0 0 10px #34D399;
+  box-shadow: 0 0 10px var(--status-badge-text);
   animation: pulse 2s infinite;
 }
 
@@ -173,7 +319,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #fff;
+  color: var(--text-main);
 }
 
 .card-title i {
@@ -195,11 +341,11 @@ body {
 
 .form-control {
   width: 100%;
-  background: rgba(13, 15, 24, 0.7);
-  border: 1px solid var(--card-border);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
   padding: 10px 14px;
-  color: #fff;
+  color: var(--input-text);
   font-size: 0.95rem;
   outline: none;
   transition: var(--transition);
@@ -217,7 +363,7 @@ body {
   padding: 1.8rem;
   text-align: center;
   cursor: pointer;
-  background: rgba(129, 88, 161, 0.04);
+  background: var(--input-bg);
   transition: var(--transition);
   margin-bottom: 1.25rem;
 }
@@ -236,6 +382,7 @@ body {
 .upload-title {
   font-size: 0.92rem;
   font-weight: 600;
+  color: var(--text-main);
   margin-bottom: 4px;
 }
 
@@ -299,12 +446,19 @@ body {
 }
 
 .kpi-box {
-  background: rgba(13, 15, 24, 0.6);
+  background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-md);
   padding: 1.2rem;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--card-shadow);
+  transition: var(--transition);
+}
+
+.kpi-box:hover {
+  border-color: var(--card-hover-border);
+  box-shadow: var(--card-hover-shadow);
 }
 
 .kpi-box::after {
@@ -336,12 +490,12 @@ body {
 .kpi-value {
   font-size: 1.8rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-main);
 }
 
 .kpi-sub {
   font-size: 0.75rem;
-  color: #34D399;
+  color: #10B981;
   margin-top: 4px;
   display: flex;
   align-items: center;
@@ -358,20 +512,20 @@ body {
 .data-table th {
   text-align: left;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--table-header-bg);
   color: var(--text-muted);
   font-weight: 600;
-  border-bottom: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--table-border);
 }
 
 .data-table td {
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  color: #E2E8F0;
+  border-bottom: 1px solid var(--table-border);
+  color: var(--table-text);
 }
 
 .data-table tr:hover td {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--table-row-hover);
 }
 
 .badge-eps {
@@ -380,20 +534,20 @@ body {
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: rgba(129, 88, 161, 0.2);
-  color: #d1b5ea;
-  border: 1px solid rgba(129, 88, 161, 0.4);
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  border: 1px solid var(--badge-border);
 }
 
 /* Terminal Console */
 .terminal-window {
-  background: #090B10;
+  background: var(--terminal-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-md);
   padding: 1rem;
   font-family: 'Consolas', 'Courier New', monospace;
   font-size: 0.82rem;
-  color: #A0AEC0;
+  color: var(--terminal-text);
   height: 180px;
   overflow-y: auto;
   margin-top: 1.25rem;
@@ -432,6 +586,7 @@ body {
   padding: 1.5rem;
   color: var(--text-muted);
   font-size: 0.82rem;
-  border-top: 1px solid var(--card-border);
+  background: var(--navbar-bg);
+  border-top: 1px solid var(--navbar-border);
   margin-top: auto;
 }

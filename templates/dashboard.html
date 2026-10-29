@@ -8,6 +8,14 @@
   <meta name="description"
     content="Tablero analítico multidimensional de la Cohorte Oncológica INOOS - Instituto Oncológico Ospedale con indicadores calculados 100% de la base y benchmarking oficial.">
 
+  <!-- Immediate Theme Initialization (Evita flash de estilo, por defecto claro) -->
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem('inoos-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+
   <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,9 +61,16 @@
       <a href="/dashboard" class="nav-btn active"><i class="fa-solid fa-chart-pie"></i> Cohorte Oncológica</a>
     </div>
 
-    <div class="status-badge" id="system-status">
-      <div class="status-dot"></div>
-      <span id="active-file-indicator">{{ default_excel }}</span>
+    <div class="navbar-actions">
+      <button id="theme-toggle-btn" class="theme-toggle-btn" type="button" aria-label="Cambiar tema de color" title="Alternar entre modo claro y oscuro">
+        <i class="fa-solid fa-moon" id="theme-icon"></i>
+        <span id="theme-label">Modo Oscuro</span>
+      </button>
+
+      <div class="status-badge" id="system-status">
+        <div class="status-dot"></div>
+        <span id="active-file-indicator">{{ default_excel }}</span>
+      </div>
     </div>
   </nav>
 

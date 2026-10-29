@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentAgrupadoresList = [];
   let isFetching = false;
   let lastTopNeoplasiasData = null;
+  let lastDashboardData = null;
   let topChartOrientation = 'x'; // 'x' para barras verticales con línea por encima, 'y' para horizontal
 
   // Paleta de Colores Institucional INOOS
@@ -75,29 +76,52 @@ document.addEventListener('DOMContentLoaded', () => {
   const COLOR_AZUL = '#60A5FA';
   const COLOR_VERDE = '#34D399';
   const COLOR_AMARILLO = '#FBBF24';
-  const COLOR_DORADO_CONTRASTE = '#FACC15'; // Amarillo/Oro Neón de Máximo Contraste Visual
+  const COLOR_DORADO_CONTRASTE = '#FACC15'; // Amarillo/Oro Neón en oscuro, Ámbar en claro
   const COLOR_ROJO = '#EF4444';
   const COLOR_GRIS = 'rgba(255, 255, 255, 0.08)';
 
-  // Configuración Segura de Defaults de Chart.js
-  if (typeof Chart !== 'undefined') {
+  // Helper de Tokens Dinámicos según Modo Claro / Modo Oscuro
+  function getThemeTokens() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return {
+      isDark: isDark,
+      textColor: isDark ? '#E2E8F0' : '#1E293B',
+      mutedColor: isDark ? '#9DA3AE' : '#64748B',
+      tickColor: isDark ? '#CBD5E1' : '#475569',
+      gridColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.07)',
+      gridSubtle: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+      cardBg: isDark ? '#171b2c' : '#FFFFFF',
+      sliceBorder: isDark ? '#171b2c' : '#FFFFFF',
+      dorado: isDark ? '#FACC15' : '#D97706',
+      doradoBg: isDark ? 'rgba(250, 204, 21, 0.25)' : 'rgba(217, 119, 6, 0.20)',
+      turquesa: isDark ? '#47A9A1' : '#2E8B83',
+      turquesaBg: isDark ? 'rgba(71, 169, 161, 0.85)' : 'rgba(46, 139, 131, 0.90)',
+      lila: '#8158A1',
+      rosa: '#E27396'
+    };
+  }
+
+  function updateChartDefaults(isDark) {
+    if (typeof Chart === 'undefined') return;
     try {
-      Chart.defaults.color = '#9DA3AE';
+      Chart.defaults.color = isDark ? '#9DA3AE' : '#475569';
       Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
       if (Chart.defaults.plugins && Chart.defaults.plugins.tooltip) {
-        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(13, 15, 24, 0.95)';
-        Chart.defaults.plugins.tooltip.borderColor = 'rgba(255, 255, 255, 0.15)';
+        Chart.defaults.plugins.tooltip.backgroundColor = isDark ? 'rgba(13, 15, 24, 0.95)' : 'rgba(15, 23, 42, 0.94)';
+        Chart.defaults.plugins.tooltip.borderColor = isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)';
         Chart.defaults.plugins.tooltip.borderWidth = 1;
         Chart.defaults.plugins.tooltip.padding = 10;
         Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        Chart.defaults.plugins.tooltip.titleColor = '#FFFFFF';
+        Chart.defaults.plugins.tooltip.bodyColor = '#F8FAFC';
       }
-      console.log('[INOOS Dashboard] Chart.js inicializado correctamente.');
     } catch (e) {
       console.warn('[INOOS Dashboard] Advertencia configurando defaults de Chart.js:', e);
     }
-  } else {
-    console.warn('[INOOS Dashboard] ATENCIÓN: Chart.js no se cargó. Los indicadores numéricos, tablas y análisis se mostrarán normalmente.');
   }
+
+  // Inicializar defaults iniciales
+  updateChartDefaults(document.documentElement.getAttribute('data-theme') === 'dark');
 
   // Helper seguro para crear o actualizar gráficos sin lanzar excepciones no controladas
   function safeCreateChart(canvasId, oldChart, chartConfig) {
@@ -248,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('[INOOS Dashboard] Datos calculados recibidos exitosamente.');
 
       if (data.status === 'success') {
+        lastDashboardData = data;
         // 1. Tarjetas Ejecutivas Principales
         try {
           updateKPIs(data.kpis);
@@ -381,6 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateTopNeoplasiasChart(topData) {
     if (!topData || !topData.labels) return;
     lastTopNeoplasiasData = topData;
+    const tokens = getThemeTokens();
 
     const isHorizontal = (topChartOrientation === 'y');
 
@@ -400,9 +426,9 @@ document.addEventListener('DOMContentLoaded', () => {
             type: 'bar',
             label: 'Casos Totales (Barras)',
             data: topData.casos,
-            backgroundColor: 'rgba(71, 169, 161, 0.85)',
-            hoverBackgroundColor: '#47A9A1',
-            borderColor: '#47A9A1',
+            backgroundColor: tokens.turquesaBg,
+            hoverBackgroundColor: tokens.turquesa,
+            borderColor: tokens.turquesa,
             borderWidth: 1.5,
             borderRadius: 6,
             yAxisID: isHorizontal ? 'y' : 'y',
@@ -413,12 +439,12 @@ document.addEventListener('DOMContentLoaded', () => {
             type: 'line',
             label: 'Tasa Prevalencia x 100k (Línea)',
             data: topData.tasas,
-            borderColor: COLOR_DORADO_CONTRASTE,
-            backgroundColor: 'rgba(250, 204, 21, 0.25)',
+            borderColor: tokens.dorado,
+            backgroundColor: tokens.doradoBg,
             borderWidth: 3.5,
             pointRadius: 6,
             pointHoverRadius: 9,
-            pointBackgroundColor: COLOR_DORADO_CONTRASTE,
+            pointBackgroundColor: tokens.dorado,
             pointBorderColor: '#FFFFFF',
             pointBorderWidth: 2,
             tension: 0.3,
@@ -440,29 +466,29 @@ document.addEventListener('DOMContentLoaded', () => {
         scales: isHorizontal ? {
           y: {
             grid: { display: false },
-            ticks: { font: { size: 10, weight: '600' }, color: '#CBD5E1' }
+            ticks: { font: { size: 10, weight: '600' }, color: tokens.tickColor }
           },
           x: {
             type: 'linear',
             position: 'bottom',
-            title: { display: true, text: 'Casos Totales (Pacientes)', color: '#47A9A1', font: { weight: '600', size: 11 } },
-            grid: { color: COLOR_GRIS },
-            ticks: { color: '#9DA3AE' },
+            title: { display: true, text: 'Casos Totales (Pacientes)', color: tokens.turquesa, font: { weight: '600', size: 11 } },
+            grid: { color: tokens.gridColor },
+            ticks: { color: tokens.mutedColor },
             beginAtZero: true
           },
           x1: {
             type: 'linear',
             position: 'top',
-            title: { display: true, text: 'Tasa x 100.000 Afiliados', color: COLOR_DORADO_CONTRASTE, font: { weight: '600', size: 11 } },
+            title: { display: true, text: 'Tasa x 100.000 Afiliados', color: tokens.dorado, font: { weight: '600', size: 11 } },
             grid: { drawOnChartArea: false },
-            ticks: { color: COLOR_DORADO_CONTRASTE },
+            ticks: { color: tokens.dorado },
             beginAtZero: true
           }
         } : {
           x: {
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            grid: { color: tokens.gridSubtle },
             ticks: {
-              color: '#CBD5E1',
+              color: tokens.tickColor,
               font: { size: 10, weight: '600' },
               maxRotation: 35,
               minRotation: 0
@@ -475,11 +501,11 @@ document.addEventListener('DOMContentLoaded', () => {
             title: {
               display: true,
               text: 'Casos Totales (Pacientes)',
-              color: '#47A9A1',
+              color: tokens.turquesa,
               font: { weight: '600', size: 11 }
             },
-            grid: { color: COLOR_GRIS },
-            ticks: { color: '#9DA3AE' },
+            grid: { color: tokens.gridColor },
+            ticks: { color: tokens.mutedColor },
             beginAtZero: true
           },
           y1: {
@@ -489,11 +515,11 @@ document.addEventListener('DOMContentLoaded', () => {
             title: {
               display: true,
               text: 'Tasa x 100.000 Afiliados',
-              color: COLOR_DORADO_CONTRASTE,
+              color: tokens.dorado,
               font: { weight: '600', size: 11 }
             },
             grid: { drawOnChartArea: false },
-            ticks: { color: COLOR_DORADO_CONTRASTE },
+            ticks: { color: tokens.dorado },
             beginAtZero: true
           }
         },
@@ -503,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
             labels: {
               boxWidth: 14,
               padding: 12,
-              color: '#E2E8F0',
+              color: tokens.textColor,
               font: { weight: '600', size: 11 }
             }
           },
@@ -533,8 +559,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Gráfico: Aseguradoras (EPS)
   function updateEpsPieChart(epsData) {
     if (!epsData || !epsData.labels) return;
-
-    const colors = [COLOR_TURQUESA, COLOR_LILA, COLOR_AZUL, COLOR_ROSA, COLOR_AMARILLO, '#A78BFA', '#F472B6'];
+    const tokens = getThemeTokens();
+    const colors = [tokens.turquesa, tokens.lila, COLOR_AZUL, tokens.rosa, COLOR_AMARILLO, '#A78BFA', '#F472B6'];
 
     chartEpsPie = safeCreateChart('chart-eps-pie', chartEpsPie, {
       type: 'doughnut',
@@ -543,7 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
         datasets: [{
           data: epsData.casos,
           backgroundColor: colors.slice(0, epsData.labels.length),
-          borderColor: '#0D0F18',
+          borderColor: tokens.sliceBorder,
           borderWidth: 2
         }]
       },
@@ -551,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } },
+          legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 }, color: tokens.textColor } },
           tooltip: {
             callbacks: {
               label: (item) => ` ${item.label}: ${Number(item.raw).toLocaleString()} (${epsData.pcts ? epsData.pcts[item.dataIndex] : 0}%)`
@@ -566,6 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Gráfico: Prioridad CAC Pie
   function updatePrioridadPieChart(kpis) {
     if (!kpis) return;
+    const tokens = getThemeTokens();
 
     chartPrioridadPie = safeCreateChart('chart-prioridad-pie', chartPrioridadPie, {
       type: 'doughnut',
@@ -573,8 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
         labels: ['Priorizados CAC', 'No Priorizados'],
         datasets: [{
           data: [kpis.priorizados_count, kpis.no_priorizados_count],
-          backgroundColor: [COLOR_TURQUESA, COLOR_ROSA],
-          borderColor: '#0D0F18',
+          backgroundColor: [tokens.turquesa, tokens.rosa],
+          borderColor: tokens.sliceBorder,
           borderWidth: 2
         }]
       },
@@ -582,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11 } } },
+          legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11 }, color: tokens.textColor } },
           tooltip: {
             callbacks: {
               label: (item) => ` ${item.label}: ${Number(item.raw).toLocaleString()} casos`
@@ -712,6 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (elRegST && sReg) elRegST.textContent = `${sReg.temprano_pct}%`;
 
       // Gráfico de Barras Comparativo
+      const tokens = getThemeTokens();
       const labels = ['Estadios Tempranos (I-II) %', 'Mediana Días a Consulta'];
       const dataC = [cReg ? cReg.temprano_pct : 59.7, cReg ? cReg.mediana_dias_consulta : 31.0];
       const dataS = [sReg ? sReg.temprano_pct : 54.8, sReg ? sReg.mediana_dias_consulta : 25.0];
@@ -724,13 +752,13 @@ document.addEventListener('DOMContentLoaded', () => {
             {
               label: 'Régimen Contributivo',
               data: dataC,
-              backgroundColor: COLOR_TURQUESA,
+              backgroundColor: tokens.turquesa,
               borderRadius: 6
             },
             {
               label: 'Régimen Subsidiado',
               data: dataS,
-              backgroundColor: COLOR_ROSA,
+              backgroundColor: tokens.rosa,
               borderRadius: 6
             }
           ]
@@ -738,9 +766,12 @@ document.addEventListener('DOMContentLoaded', () => {
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: tokens.textColor } }
+          },
           scales: {
-            y: { grid: { color: COLOR_GRIS } },
-            x: { grid: { display: false } }
+            y: { grid: { color: tokens.gridColor }, ticks: { color: tokens.tickColor } },
+            x: { grid: { display: false }, ticks: { color: tokens.tickColor } }
           }
         }
       });
@@ -752,6 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   function updateEstadificacionYOportunidad(data) {
     if (!data) return;
+    const tokens = getThemeTokens();
 
     // 1. Gráfico de Estadios Clínicos
     if (data.estadios) {
@@ -762,7 +794,7 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{
             data: data.estadios.casos,
             backgroundColor: [COLOR_VERDE, COLOR_AMARILLO, COLOR_ROJO, '#9CA3AF'],
-            borderColor: '#0D0F18',
+            borderColor: tokens.sliceBorder,
             borderWidth: 2
           }]
         },
@@ -770,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } }
+            legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 }, color: tokens.textColor } }
           },
           cutout: '60%'
         }
@@ -793,9 +825,12 @@ document.addEventListener('DOMContentLoaded', () => {
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: tokens.textColor } }
+          },
           scales: {
-            y: { grid: { color: COLOR_GRIS } },
-            x: { grid: { display: false } }
+            y: { grid: { color: tokens.gridColor }, ticks: { color: tokens.tickColor } },
+            x: { grid: { display: false }, ticks: { color: tokens.tickColor } }
           }
         }
       });
@@ -809,8 +844,8 @@ document.addEventListener('DOMContentLoaded', () => {
           labels: data.intencion_tratamiento.labels,
           datasets: [{
             data: data.intencion_tratamiento.casos,
-            backgroundColor: [COLOR_TURQUESA, COLOR_ROSA, COLOR_AZUL, '#6B7280'],
-            borderColor: '#0D0F18',
+            backgroundColor: [tokens.turquesa, tokens.rosa, COLOR_AZUL, '#6B7280'],
+            borderColor: tokens.sliceBorder,
             borderWidth: 2
           }]
         },
@@ -818,7 +853,7 @@ document.addEventListener('DOMContentLoaded', () => {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } }
+            legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 }, color: tokens.textColor } }
           },
           cutout: '60%'
         }
@@ -836,14 +871,14 @@ document.addEventListener('DOMContentLoaded', () => {
             {
               label: 'Incidentes (Nuevos)',
               data: evo.ingresos_incidentes || [],
-              backgroundColor: COLOR_TURQUESA,
+              backgroundColor: tokens.turquesa,
               borderRadius: 4,
               stack: 'ingresos'
             },
             {
               label: 'Prevalentes (Existentes)',
               data: evo.ingresos_prevalentes || [],
-              backgroundColor: COLOR_DORADO_CONTRASTE,
+              backgroundColor: tokens.dorado,
               borderRadius: 4,
               stack: 'ingresos'
             },
@@ -851,12 +886,12 @@ document.addEventListener('DOMContentLoaded', () => {
               type: 'line',
               label: 'Total Ingresos al Mes',
               data: evo.ingresos || [],
-              borderColor: '#38BDF8',
+              borderColor: tokens.isDark ? '#38BDF8' : '#0284C7',
               backgroundColor: 'rgba(56, 189, 248, 0.15)',
               borderWidth: 2.5,
               pointRadius: 4,
               pointHoverRadius: 7,
-              pointBackgroundColor: '#38BDF8',
+              pointBackgroundColor: tokens.isDark ? '#38BDF8' : '#0284C7',
               pointBorderColor: '#FFFFFF',
               pointBorderWidth: 1.5,
               tension: 0.3,
@@ -873,20 +908,20 @@ document.addEventListener('DOMContentLoaded', () => {
           },
           scales: {
             y: {
-              grid: { color: COLOR_GRIS },
-              ticks: { color: '#9DA3AE' },
+              grid: { color: tokens.gridColor },
+              ticks: { color: tokens.tickColor },
               beginAtZero: true,
-              title: { display: true, text: 'Pacientes que Ingresan', color: '#9DA3AE', font: { size: 10, weight: '600' } }
+              title: { display: true, text: 'Pacientes que Ingresan', color: tokens.mutedColor, font: { size: 10, weight: '600' } }
             },
             x: {
               grid: { display: false },
-              ticks: { color: '#CBD5E1', font: { weight: '600' } }
+              ticks: { color: tokens.tickColor, font: { weight: '600' } }
             }
           },
           plugins: {
             legend: {
               position: 'top',
-              labels: { boxWidth: 12, padding: 10, color: '#E2E8F0', font: { size: 11, weight: '600' } }
+              labels: { boxWidth: 12, padding: 10, color: tokens.textColor, font: { size: 11, weight: '600' } }
             },
             tooltip: {
               callbacks: {
@@ -910,6 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   function updateDemografiaTab(data) {
     if (!data) return;
+    const tokens = getThemeTokens();
 
     // 1. Pirámide de Edad y Sexo
     if (data.piramide_edad_sexo) {
@@ -921,7 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
             {
               label: 'Femenino (F)',
               data: data.piramide_edad_sexo.femenino,
-              backgroundColor: COLOR_ROSA,
+              backgroundColor: tokens.rosa,
               borderRadius: 6
             },
             {
@@ -935,9 +971,12 @@ document.addEventListener('DOMContentLoaded', () => {
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: tokens.textColor } }
+          },
           scales: {
-            x: { grid: { display: false } },
-            y: { grid: { color: COLOR_GRIS } }
+            x: { grid: { display: false }, ticks: { color: tokens.tickColor } },
+            y: { grid: { color: tokens.gridColor }, ticks: { color: tokens.tickColor } }
           }
         }
       });
@@ -952,7 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{
             label: 'Pacientes',
             data: data.departamentos.casos,
-            backgroundColor: COLOR_TURQUESA,
+            backgroundColor: tokens.turquesa,
             borderRadius: 6
           }]
         },
@@ -960,9 +999,12 @@ document.addEventListener('DOMContentLoaded', () => {
           responsive: true,
           maintainAspectRatio: false,
           indexAxis: 'y',
+          plugins: {
+            legend: { labels: { color: tokens.textColor } }
+          },
           scales: {
-            x: { grid: { color: COLOR_GRIS } },
-            y: { grid: { display: false } }
+            x: { grid: { color: tokens.gridColor }, ticks: { color: tokens.tickColor } },
+            y: { grid: { display: false }, ticks: { color: tokens.tickColor } }
           }
         }
       });
@@ -976,8 +1018,8 @@ document.addEventListener('DOMContentLoaded', () => {
           labels: data.regimen_distribucion.labels,
           datasets: [{
             data: data.regimen_distribucion.casos,
-            backgroundColor: [COLOR_ROSA, COLOR_TURQUESA, COLOR_AMARILLO, '#9CA3AF'],
-            borderColor: '#0D0F18',
+            backgroundColor: [tokens.rosa, tokens.turquesa, COLOR_AMARILLO, '#9CA3AF'],
+            borderColor: tokens.sliceBorder,
             borderWidth: 2
           }]
         },
@@ -985,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', () => {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } }
+            legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 }, color: tokens.textColor } }
           },
           cutout: '60%'
         }
@@ -1001,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{
             label: 'Casos por Municipio',
             data: data.top_municipios.casos,
-            backgroundColor: COLOR_LILA,
+            backgroundColor: tokens.lila,
             borderRadius: 6
           }]
         },
@@ -1009,9 +1051,12 @@ document.addEventListener('DOMContentLoaded', () => {
           responsive: true,
           maintainAspectRatio: false,
           indexAxis: 'y',
+          plugins: {
+            legend: { labels: { color: tokens.textColor } }
+          },
           scales: {
-            x: { grid: { color: COLOR_GRIS } },
-            y: { grid: { display: false } }
+            x: { grid: { color: tokens.gridColor }, ticks: { color: tokens.tickColor } },
+            y: { grid: { display: false }, ticks: { color: tokens.tickColor } }
           }
         }
       });
@@ -1148,8 +1193,49 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
+  // TEMA DE COLOR: CLARO / OSCURO (PREDETERMINADO CLARO)
+  // ==========================================
+  function reRenderAllCharts() {
+    if (!lastDashboardData) return;
+    const d = lastDashboardData;
+    if (d.top10_agrupadores) updateTopNeoplasiasChart(d.top10_agrupadores);
+    if (d.eps_distribucion) updateEpsPieChart(d.eps_distribucion);
+    if (d.kpis) updatePrioridadPieChart(d.kpis);
+    if (d.benchmarking_cac) updateBenchmarkingTab(d.benchmarking_cac, d.mama_biomarcadores);
+    updateEstadificacionYOportunidad(d);
+    updateDemografiaTab(d);
+  }
+
+  function initThemeToggle() {
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeLabel = document.getElementById('theme-label');
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('inoos-theme', theme);
+      const isDark = (theme === 'dark');
+      if (themeIcon) themeIcon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+      if (themeLabel) themeLabel.textContent = isDark ? 'Modo Claro' : 'Modo Oscuro';
+      updateChartDefaults(isDark);
+      reRenderAllCharts();
+    }
+
+    const currentTheme = localStorage.getItem('inoos-theme') || 'light';
+    applyTheme(currentTheme);
+
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const nextTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        applyTheme(nextTheme);
+      });
+    }
+  }
+
+  // ==========================================
   // EJECUCIÓN INMEDIATA AL ABRIR LA PANTALLA
   // ==========================================
+  initThemeToggle();
   // 1. Cargar datos del dashboard de inmediato para poblar las tarjetas
   refreshDashboard();
   // 2. Cargar listas dinámicas de los selects
