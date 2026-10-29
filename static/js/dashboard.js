@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectEps = document.getElementById('filter-eps');
   const selectPrioridad = document.getElementById('filter-prioridad');
   const selectAgrupador = document.getElementById('filter-agrupador');
+  const selectTipoRegistro = document.getElementById('filter-tipo-registro');
   const selectRegimen = document.getElementById('filter-regimen');
   const selectEstadio = document.getElementById('filter-estadio');
   const selectSexo = document.getElementById('filter-sexo');
@@ -30,6 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const cardTotalSub = document.getElementById('card-total-sub');
   const cardTasa = document.getElementById('card-tasa-prev');
   const cardTasaSub = document.getElementById('card-tasa-sub');
+  const cardIncidencia = document.getElementById('card-incidencia-casos');
+  const cardIncidenciaSub = document.getElementById('card-incidencia-sub');
   const cardTemprano = document.getElementById('card-temprano-pct');
   const cardTempranoSub = document.getElementById('card-temprano-sub');
   const cardOportunidad = document.getElementById('card-oportunidad-dias');
@@ -186,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
       eps: selectEps ? selectEps.value : 'ALL',
       prioridad: selectPrioridad ? selectPrioridad.value : 'ALL',
       agrupador: selectAgrupador ? selectAgrupador.value : 'ALL',
+      tipo_registro: selectTipoRegistro ? selectTipoRegistro.value : 'ALL',
       regimen: selectRegimen ? selectRegimen.value : 'ALL',
       estadio: selectEstadio ? selectEstadio.value : 'ALL',
       sexo: selectSexo ? selectSexo.value : 'ALL',
@@ -201,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (cardTotal && cardTotal.textContent === '-') cardTotal.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
     if (cardTasa && cardTasa.textContent === '-') cardTasa.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
+    if (cardIncidencia && cardIncidencia.textContent === '-') cardIncidencia.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
     if (cardTemprano && cardTemprano.textContent === '-') cardTemprano.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
     if (cardOportunidad && cardOportunidad.textContent === '-') cardOportunidad.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
     if (cardPrio && cardPrio.textContent === '-') cardPrio.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
@@ -327,6 +332,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cardTasa) cardTasa.textContent = Number(kpis.tasa_prevalencia).toLocaleString();
     if (cardTasaSub) cardTasaSub.innerHTML = `<i class="fa-solid fa-bullseye"></i> Sobre ${Number(kpis.poblacion_afiliada).toLocaleString()} afiliados (${kpis.poblacion_label})`;
 
+    if (cardIncidencia) {
+      const incCount = Number(kpis.incidentes_count || 0).toLocaleString();
+      cardIncidencia.textContent = `${incCount} (${kpis.incidentes_pct || 0}%)`;
+    }
+    if (cardIncidenciaSub) {
+      const prevCount = Number(kpis.prevalentes_count || 0).toLocaleString();
+      cardIncidenciaSub.innerHTML = `<i class="fa-solid fa-arrows-split-up-and-left"></i> Prev: ${prevCount} (${kpis.prevalentes_pct || 0}%) | Tasa Inc: ${kpis.tasa_incidencia || 0}`;
+    }
+
     if (cardTemprano) cardTemprano.textContent = `${kpis.estadio_temprano_pct}%`;
     if (cardTempranoSub) cardTempranoSub.innerHTML = `<i class="fa-solid fa-flag-checkered"></i> Estadios I-II (Meta CAC: &ge; 60%)`;
 
@@ -344,42 +358,124 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Gráfico: Top 10 Neoplasias
+  // Gráfico: Top 10 Neoplasias (Casos en Barras y Tasa de Prevalencia en Línea con Doble Eje Y)
   function updateTopNeoplasiasChart(topData) {
     if (!topData || !topData.labels) return;
+
+    // Abreviar suavemente nombres extensos para una presentación pulida en el eje X
+    const displayLabels = topData.labels.map(l => {
+      let clean = l.replace(/^Tumor(es)? Maligno(s)? de(l)?\s*/i, 'Cáncer ');
+      if (clean.length > 24) return clean.slice(0, 22) + '...';
+      return clean;
+    });
 
     chartTopNeoplasias = safeCreateChart('chart-top-neoplasias', chartTopNeoplasias, {
       type: 'bar',
       data: {
-        labels: topData.labels,
+        labels: displayLabels,
         datasets: [
           {
-            label: 'Casos Totales en la Base',
+            type: 'bar',
+            label: 'Casos Totales (Barras)',
             data: topData.casos,
-            backgroundColor: COLOR_TURQUESA,
+            backgroundColor: 'rgba(71, 169, 161, 0.75)',
+            hoverBackgroundColor: '#47A9A1',
+            borderColor: '#47A9A1',
+            borderWidth: 1,
             borderRadius: 6,
-            yAxisID: 'y'
+            yAxisID: 'y',
+            order: 2
           },
           {
-            label: 'Tasa x 100.000 Afiliados',
+            type: 'line',
+            label: 'Tasa Prevalencia x 100k (Línea)',
             data: topData.tasas,
-            backgroundColor: COLOR_LILA,
-            borderRadius: 6,
-            yAxisID: 'y1'
+            borderColor: '#FBBF24',
+            backgroundColor: 'rgba(251, 191, 36, 0.15)',
+            borderWidth: 3,
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            pointBackgroundColor: '#FBBF24',
+            pointBorderColor: '#0D0F18',
+            pointBorderWidth: 2,
+            tension: 0.3,
+            fill: false,
+            yAxisID: 'y1',
+            order: 1
           }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        indexAxis: 'y',
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
         scales: {
-          x: { grid: { color: COLOR_GRIS } },
-          y: { grid: { display: false }, ticks: { font: { size: 11, weight: '600' } } },
-          y1: { display: false }
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: {
+              color: '#CBD5E1',
+              font: { size: 10, weight: '600' },
+              maxRotation: 35,
+              minRotation: 0
+            }
+          },
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Casos Totales',
+              color: '#47A9A1',
+              font: { weight: '600', size: 11 }
+            },
+            grid: { color: COLOR_GRIS },
+            ticks: { color: '#9DA3AE' },
+            beginAtZero: true
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Tasa x 100.000 Afiliados',
+              color: '#FBBF24',
+              font: { weight: '600', size: 11 }
+            },
+            grid: { drawOnChartArea: false },
+            ticks: { color: '#FBBF24' },
+            beginAtZero: true
+          }
         },
         plugins: {
-          legend: { position: 'top', labels: { boxWidth: 12, padding: 15 } }
+          legend: {
+            position: 'top',
+            labels: {
+              boxWidth: 14,
+              padding: 12,
+              color: '#E2E8F0',
+              font: { weight: '600', size: 11 }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              title: function(items) {
+                if (!items.length) return '';
+                const idx = items[0].dataIndex;
+                return topData.labels[idx] || items[0].label;
+              },
+              label: function(context) {
+                if (context.dataset.type === 'line') {
+                  return ` ${context.dataset.label}: ${context.parsed.y.toLocaleString()} por 100k`;
+                }
+                return ` ${context.dataset.label}: ${context.parsed.y.toLocaleString()} pacientes`;
+              }
+            }
+          }
         }
       }
     });
@@ -873,7 +969,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Eventos de los Filtros Select (recalculan el tablero en tiempo real)
-  [selectEps, selectPrioridad, selectAgrupador, selectRegimen, selectEstadio, selectSexo, selectEdad, selectDepto].forEach(sel => {
+  [selectEps, selectPrioridad, selectAgrupador, selectTipoRegistro, selectRegimen, selectEstadio, selectSexo, selectEdad, selectDepto].forEach(sel => {
     if (sel) {
       sel.addEventListener('change', () => {
         console.log(`[INOOS Dashboard] Filtro modificado: ${sel.id} = ${sel.value}`);
@@ -895,6 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (selectEps) selectEps.value = 'ALL';
       if (selectPrioridad) selectPrioridad.value = 'ALL';
       if (selectAgrupador) selectAgrupador.value = 'ALL';
+      if (selectTipoRegistro) selectTipoRegistro.value = 'ALL';
       if (selectRegimen) selectRegimen.value = 'ALL';
       if (selectEstadio) selectEstadio.value = 'ALL';
       if (selectSexo) selectSexo.value = 'ALL';

@@ -167,21 +167,27 @@
   width: 100%;
 }
 
-/* Banner de KPIs Ejecutivos (4 Indicadores Principales) */
+/* Banner de KPIs Ejecutivos (5 Indicadores Principales) */
 .kpi-banner {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
   margin-bottom: 1.5rem;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1400px) {
+  .kpi-banner {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
   .kpi-banner {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 650px) {
+@media (max-width: 600px) {
   .kpi-banner {
     grid-template-columns: 1fr;
   }

@@ -394,7 +394,7 @@ def export_dashboard_csv():
     
     import io
     output = io.StringIO()
-    cols_to_export = [c for c in ['PACIENTE_ID', 'EPS_CANONICA', 'AGRUPADOR', 'ES_PRIORIZADO', 'EDAD', 'SEXO', 'DEPARTAMENTO', 'OBJETIVO_TTO', 'FECHA_INGRESO', 'FECHA_DX'] if c in df_filtered.columns]
+    cols_to_export = [c for c in ['PACIENTE_ID', 'EPS_CANONICA', 'REGIMEN', 'TIPO_REGISTRO', 'AGRUPADOR', 'ES_PRIORIZADO', 'ESTADIO_CLINICO', 'EDAD', 'SEXO', 'DEPARTAMENTO', 'DIAS_DX_A_CONSULTA', 'INTENCION_INICIAL', 'FECHA_INGRESO', 'FECHA_DX'] if c in df_filtered.columns]
     df_filtered[cols_to_export].to_csv(output, index=False, sep=';', encoding='utf-8-sig')
     
     mem = io.BytesIO()

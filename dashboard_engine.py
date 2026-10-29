@@ -58,6 +58,19 @@ class DashboardEngine:
                 t0 = time.time()
                 with open(cache_path, 'rb') as f:
                     self.df = pickle.load(f)
+                # Garantizar compatibilidad hacia adelante si el caché previo no tenía TIPO_REGISTRO
+                if 'TIPO_REGISTRO' not in self.df.columns:
+                    raw = clinical_engine.df_raw
+                    if 'INCENCIA_O_PREVALENCIA' in raw.columns:
+                        def clean_tipo(val):
+                            v = str(val).upper().strip()
+                            if 'INCIDENCIA' in v: return 'Incidencia (Casos Nuevos)'
+                            return 'Prevalencia (Casos Existentes)'
+                        self.df['TIPO_REGISTRO'] = raw['INCENCIA_O_PREVALENCIA'].apply(clean_tipo)
+                    else:
+                        self.df['TIPO_REGISTRO'] = 'Prevalencia (Casos Existentes)'
+                    with open(cache_path, 'wb') as f_out:
+                        pickle.dump(self.df, f_out, protocol=pickle.HIGHEST_PROTOCOL)
                 print(f"[CACHE HIT] Motor analítico del Dashboard cargado en {time.time()-t0:.3f}s ({len(self.df)} pacientes).")
                 return
             except Exception as e:
@@ -193,6 +206,7 @@ class DashboardEngine:
             'eps': eps_list,
             'agrupadores': agrupadores,
             'prioridades': ['Todos', 'Priorizados CAC', 'No Priorizados'],
+            'tipos_registro': ['Todos (Prevalencia + Incidencia)', 'Prevalencia (Casos Existentes)', 'Incidencia (Casos Nuevos)'],
             'regimenes': ['Todos'] + regimenes,
             'estadios': estadios,
             'sexos': ['Todos', 'Femenino (F)', 'Masculino (M)'],
@@ -253,6 +267,14 @@ class DashboardEngine:
         if depto and depto != 'ALL' and depto != 'Todos':
             df_sub = df_sub[df_sub['DEPARTAMENTO'] == depto]
 
+        # 9. Filtro Registro Epidemiológico (Incidencia vs Prevalencia)
+        tipo = filters.get('tipo_registro')
+        if tipo and tipo != 'ALL' and tipo != 'Todos':
+            if 'incidencia' in tipo.lower() or 'nuevo' in tipo.lower():
+                df_sub = df_sub[df_sub['TIPO_REGISTRO'].str.contains('Incidencia', case=False, na=False)]
+            elif 'prevalencia' in tipo.lower() or 'existente' in tipo.lower():
+                df_sub = df_sub[df_sub['TIPO_REGISTRO'].str.contains('Prevalencia', case=False, na=False)]
+
         return df_sub
 
     def calculate_dashboard_metrics(self, filters=None):
@@ -288,6 +310,7 @@ class DashboardEngine:
         incidentes_count = int((df_sub['TIPO_REGISTRO'] == 'Incidencia (Casos Nuevos)').sum())
         prevalentes_pct = round((prevalentes_count / total_filtrados) * 100.0, 1) if total_filtrados > 0 else 0.0
         incidentes_pct = round((incidentes_count / total_filtrados) * 100.0, 1) if total_filtrados > 0 else 0.0
+        tasa_incidencia = round((incidentes_count / poblacion) * 100000.0, 2) if poblacion > 0 else 0.0
 
         # Demografía: Sexo y Edad
         sex_counts = df_sub['SEXO'].value_counts().to_dict()
@@ -544,6 +567,7 @@ class DashboardEngine:
                 'poblacion_afiliada': int(poblacion),
                 'poblacion_label': eps_label,
                 'tasa_prevalencia': tasa_prevalencia,
+                'tasa_incidencia': tasa_incidencia,
                 'priorizados_count': prio_count,
                 'priorizados_pct': prio_pct,
                 'no_priorizados_count': noprio_count,
