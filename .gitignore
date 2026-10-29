@@ -1,0 +1,60 @@
+# ======================================================================
+# INOOS - .gitignore Oficial para Repositorio GitHub
+# Protección de Privacidad Clínica (Habeas Data / Ley 1581 de 2012)
+# ======================================================================
+
+# 1. Bases de Datos Clínicas y Archivos de Pacientes (Estrictamente Confidenciales)
+*.xlsx
+*.xls
+*.csv
+uploads/*
+!uploads/.gitkeep
+
+# 2. Caché Binario y Archivos de Rendimiento
+.cache/
+*.pkl
+*.pickle
+
+# 3. Entorno Virtual de Python y Dependencias Locales
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# 4. Bytecode y Archivos Compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 5. Presentaciones Generadas y Archivos PPTX Gigantes (> 100 MB)
+*.pptx
+!template_junta.pptx
+
+# 6. Scripts y Archivos Temporales de Diagnóstico / Inspección
+inspect_*.py
+check_*.py
+dump_*.py
+analyze_*.py
+test_*.py
+map_*.py
+find_*.py
+compare_*.py
+search_*.py
+preview_*.py
+create_optimized_template.py
+summarize_*.py
+verify_*.py
+*.json
+
+# 7. Registros, Logs y Configuración de Editores
+*.log
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak

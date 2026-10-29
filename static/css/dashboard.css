@@ -1,0 +1,626 @@
+/* ======================================================================
+   INOOS - Estilos Exclusivos del Tablero de Mando e Inteligencia Clínica
+   ====================================================================== */
+
+/* Navegación entre Módulos en Navbar */
+.nav-links {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--card-border);
+  transition: var(--transition);
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav-btn.active {
+  background: linear-gradient(135deg, rgba(129, 88, 161, 0.3) 0%, rgba(71, 169, 161, 0.3) 100%);
+  color: #fff;
+  border-color: var(--secondary);
+  box-shadow: 0 0 15px rgba(71, 169, 161, 0.25);
+}
+
+/* Sticky Filter Ribbon */
+.filter-ribbon {
+  background: rgba(13, 15, 24, 0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--card-border);
+  padding: 1rem 3rem 0.8rem 3rem;
+  position: sticky;
+  top: 73px;
+  z-index: 90;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.filter-ribbon-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.filter-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-select {
+  background: rgba(23, 27, 44, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+  height: 38px;
+}
+
+.filter-select:hover, .filter-select:focus {
+  border-color: var(--secondary);
+  box-shadow: 0 0 10px rgba(71, 169, 161, 0.25);
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-filter-action {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--card-border);
+  color: #fff;
+  transition: var(--transition);
+}
+
+.btn-filter-action:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.btn-filter-action.btn-export {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34D399;
+}
+
+.btn-filter-action.btn-export:hover {
+  background: rgba(16, 185, 129, 0.35);
+}
+
+/* Sub-barra de Estadísticas en el Filtro */
+.filter-stats-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.8rem;
+}
+
+.filter-stats-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cohort-badge {
+  color: #34D399;
+  font-weight: 700;
+}
+
+.cohort-sub {
+  color: var(--text-muted);
+}
+
+.filter-stats-right {
+  color: var(--secondary);
+  font-weight: 600;
+}
+
+/* Contenedor Principal del Dashboard */
+.dashboard-main {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.5rem 3rem 4rem 3rem;
+  width: 100%;
+}
+
+/* Banner de KPIs Ejecutivos */
+.kpi-banner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 1.5rem;
+}
+
+.kpi-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.kpi-card.primary::before { background: var(--primary); }
+.kpi-card.secondary::before { background: var(--secondary); }
+.kpi-card.info::before { background: #60A5FA; }
+.kpi-card.accent::before { background: var(--accent); }
+.kpi-card.dark::before { background: #A78BFA; }
+
+.kpi-icon {
+  font-size: 1.8rem;
+  opacity: 0.85;
+}
+
+.kpi-card.primary .kpi-icon { color: var(--primary); }
+.kpi-card.secondary .kpi-icon { color: var(--secondary); }
+.kpi-card.info .kpi-icon { color: #60A5FA; }
+.kpi-card.accent .kpi-icon { color: var(--accent); }
+.kpi-card.dark .kpi-icon { color: #A78BFA; }
+
+.kpi-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-num {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.kpi-extra {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Tabs del Tablero */
+.dashboard-tabs {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid var(--card-border);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.dash-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 2px solid transparent;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.dash-tab:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.dash-tab.active {
+  color: #fff;
+  border-color: var(--secondary);
+  background: rgba(71, 169, 161, 0.08);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.tab-pane {
+  display: none;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Paneles y Tarjetas de Contenido */
+.dash-grid-2 {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1100px) {
+  .dash-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dash-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.panel-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.panel-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+}
+
+/* Metas de Oportunidad Asistencial */
+.oportunidades-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.oportunidad-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.op-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.op-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.badge-cumple {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.badge-cumple.ok {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.badge-cumple.warn {
+  background: rgba(239, 68, 68, 0.2);
+  color: #F87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.op-metrics {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.op-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.op-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* Cuidados Paliativos Grid */
+.paliativos-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.paliativo-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.paliativo-title {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.paliativo-pct {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+/* Explorador de Pacientes Search Input */
+.table-search-input {
+  background: rgba(23, 27, 44, 0.8);
+  border: 1px solid var(--card-border);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  outline: none;
+  min-width: 220px;
+}
+
+.table-search-input:focus {
+  border-color: var(--secondary);
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  max-height: 520px;
+}
+
+/* ==========================================
+   Estilos de Benchmarking Oficial CAC & INC
+   ========================================== */
+.benchmark-hero {
+  background: linear-gradient(135deg, rgba(129, 88, 161, 0.15) 0%, rgba(71, 169, 161, 0.15) 100%);
+  border: 1px solid rgba(71, 169, 161, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 1.2rem 1.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.hero-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.benchmark-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.2rem;
+}
+
+.benchmark-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  transition: var(--transition);
+}
+
+.benchmark-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+.bm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bm-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bm-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.bm-badge.ok {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.bm-badge.info {
+  background: rgba(96, 165, 250, 0.2);
+  color: #60A5FA;
+  border: 1px solid rgba(96, 165, 250, 0.4);
+}
+
+.bm-badge.warn {
+  background: rgba(245, 158, 11, 0.2);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.bm-values {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.bm-val-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bm-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.bm-val {
+  font-size: 1.15rem;
+  color: #fff;
+  font-weight: 700;
+}
+
+.bm-val.highlight {
+  color: var(--secondary);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.bm-val.target {
+  color: #FBBF24;
+}
+
+.bm-progress-bg {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bm-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.bm-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.regimen-summary-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.regimen-stat-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+

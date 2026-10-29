@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>INOOS | Tablero de Inteligencia Clínica y Benchmarking CAC / INC</title>
+  <meta name="description"
+    content="Tablero analítico multidimensional de la cohorte oncológica INOOS con indicadores calculados 100% de la base y benchmarking oficial de la Cuenta de Alto Costo e Instituto Nacional de Cancerología.">
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Chart.js Local con Fallback a CDN -->
+  <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+  <script>
+    if (typeof Chart === 'undefined') {
+      console.warn('[INOOS] Chart.js local no disponible, recurriendo a CDN...');
+      document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+    }
+  </script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="brand-container">
+      <div class="brand-badge">INOOS</div>
+      <div>
+        <div class="brand-title">Inteligencia Clínica & Benchmarking CAC / INC</div>
+        <div class="brand-subtitle">Instituto Nacional de Oncología y Oportunidad en Salud</div>
+      </div>
+    </div>
+
+    <!-- Module Navigation Links -->
+    <div class="nav-links">
+      <a href="/" class="nav-btn"><i class="fa-solid fa-file-powerpoint"></i> Generador PPTX</a>
+      <a href="/dashboard" class="nav-btn active"><i class="fa-solid fa-chart-pie"></i> Tablero de Control</a>
+    </div>
+
+    <div class="status-badge" id="system-status">
+      <div class="status-dot"></div>
+      <span id="active-file-indicator">{{ default_excel }}</span>
+    </div>
+  </nav>
+
+  <!-- Filter Ribbon (Sticky Global Filters) -->
+  <aside class="filter-ribbon">
+    <div class="filter-ribbon-content">
+
+      <div class="filter-group">
+        <label for="filter-eps"><i class="fa-solid fa-hospital-user"></i> Aseguradora (EPS)</label>
+        <select id="filter-eps" class="filter-select">
+          <option value="ALL">Todas las EPS (Consolidado)</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter-prioridad"><i class="fa-solid fa-shield-halved"></i> Prioridad CAC</label>
+        <select id="filter-prioridad" class="filter-select">
+          <option value="ALL">Todos los Estados</option>
+          <option value="priorizados">Priorizados CAC</option>
+          <option value="no_priorizados">No Priorizados</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter-agrupador"><i class="fa-solid fa-dna"></i> Agrupador de Cáncer</label>
+        <select id="filter-agrupador" class="filter-select" style="min-width: 180px;">
+          <option value="ALL">Todos los Tipos (25 Neoplasias)</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter-regimen"><i class="fa-solid fa-hand-holding-medical"></i> Régimen</label>
+        <select id="filter-regimen" class="filter-select">
+          <option value="ALL">Todos los Regímenes</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter-estadio"><i class="fa-solid fa-stairs"></i> Estadio Clínico</label>
+        <select id="filter-estadio" class="filter-select">
+          <option value="ALL">Todos los Estadios</option>
+          <option value="Temprano (Estadios I-II)">Temprano (Estadios I-II)</option>
+          <option value="Tardío (Estadio III)">Tardío (Estadio III)</option>
+          <option value="Metastásico (Estadio IV)">Metastásico (Estadio IV)</option>
+          <option value="No Estadificado / Otro">No Estadificado / Otro</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter-sexo"><i class="fa-solid fa-venus-mars"></i> Sexo</label>
+        <select id="filter-sexo" class="filter-select">
+          <option value="ALL">Todos</option>
+          <option value="F">Femenino (F)</option>
+          <option value="M">Masculino (M)</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter-edad"><i class="fa-solid fa-user-clock"></i> Rango Edad</label>
+        <select id="filter-edad" class="filter-select">
+          <option value="ALL">Todas las Edades</option>
+          <option value="< 18">&lt; 18 años</option>
+          <option value="18 - 35">18 a 35 años</option>
+          <option value="36 - 55">36 a 55 años</option>
+          <option value="56 - 70">56 a 70 años</option>
+          <option value="> 70">&gt; 70 años</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter-depto"><i class="fa-solid fa-map-location-dot"></i> Departamento</label>
+        <select id="filter-depto" class="filter-select">
+          <option value="ALL">Todos</option>
+        </select>
+      </div>
+
+      <div class="filter-actions">
+        <button id="btn-refresh-dashboard" class="btn-filter-action" title="Recalcular indicadores desde la base">
+          <i class="fa-solid fa-arrows-rotate"></i> Actualizar
+        </button>
+        <button id="btn-reset-filters" class="btn-filter-action" title="Restablecer todos los filtros">
+          <i class="fa-solid fa-rotate-left"></i> Limpiar
+        </button>
+        <button id="btn-export-csv" class="btn-filter-action btn-export" title="Descargar cohorte filtrada en CSV">
+          <i class="fa-solid fa-file-csv"></i> Exportar
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Sub-bar with live cohort statistics -->
+    <div class="filter-stats-bar">
+      <div class="filter-stats-left">
+        <span class="cohort-badge" id="cohort-counter"><i class="fa-solid fa-users"></i> Mostrando cohorte calculada de
+          la base...</span>
+        <span class="cohort-sub" id="poblacion-reference">Población Asignada: 623,321 afiliados (Nacional)</span>
+      </div>
+      <div class="filter-stats-right" id="active-corte-badge">
+        Corte Clínico: Septiembre 2026
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <main class="dashboard-main">
+
+    <!-- KPI Executive Summary Cards (100% calculadas de la base) -->
+    <section class="kpi-banner">
+      <div class="kpi-card primary">
+        <div class="kpi-icon"><i class="fa-solid fa-users-viewfinder"></i></div>
+        <div>
+          <div class="kpi-meta">Cohorte Filtrada</div>
+          <div class="kpi-num" id="card-total-casos">-</div>
+          <div class="kpi-extra" id="card-total-sub"><i class="fa-solid fa-database"></i> 100% calculado de la base
+          </div>
+        </div>
+      </div>
+
+      <div class="kpi-card secondary">
+        <div class="kpi-icon"><i class="fa-solid fa-chart-line"></i></div>
+        <div>
+          <div class="kpi-meta">Tasa Prevalencia x 100k</div>
+          <div class="kpi-num" id="card-tasa-prev">-</div>
+          <div class="kpi-extra" id="card-tasa-sub"><i class="fa-solid fa-bullseye"></i> Sobre población oficial</div>
+        </div>
+      </div>
+
+      <div class="kpi-card info">
+        <div class="kpi-icon"><i class="fa-solid fa-stairs"></i></div>
+        <div>
+          <div class="kpi-meta">Detección Temprana (I-II)</div>
+          <div class="kpi-num" id="card-temprano-pct">-</div>
+          <div class="kpi-extra" id="card-temprano-sub"><i class="fa-solid fa-flag-checkered"></i> Meta CAC: &ge; 60%
+          </div>
+        </div>
+      </div>
+
+      <div class="kpi-card accent">
+        <div class="kpi-icon"><i class="fa-solid fa-stopwatch"></i></div>
+        <div>
+          <div class="kpi-meta">Oportunidad Dx &rarr; Consulta</div>
+          <div class="kpi-num" id="card-oportunidad-dias">-</div>
+          <div class="kpi-extra" id="card-oportunidad-sub"><i class="fa-solid fa-clock"></i> Mediana en días (Meta CAC:
+            &le; 15d)</div>
+        </div>
+      </div>
+
+      <div class="kpi-card dark">
+        <div class="kpi-icon"><i class="fa-solid fa-ribbon"></i></div>
+        <div>
+          <div class="kpi-meta">Priorizados CAC</div>
+          <div class="kpi-num" id="card-priorizados">-</div>
+          <div class="kpi-extra" id="card-priorizados-sub"><i class="fa-solid fa-percentage"></i> Cánceres prioritarios
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab Navigation -->
+    <nav class="dashboard-tabs">
+      <button class="dash-tab active" data-tab="tab-neoplasias">
+        <i class="fa-solid fa-dna"></i> Cohorte & Neoplasias
+      </button>
+      <button class="dash-tab" data-tab="tab-benchmarking">
+        <i class="fa-solid fa-scale-balanced"></i> Benchmarking CAC / INC
+      </button>
+      <button class="dash-tab" data-tab="tab-oportunidad">
+        <i class="fa-solid fa-stopwatch-20"></i> Estadificación & Oportunidad Real
+      </button>
+      <button class="dash-tab" data-tab="tab-demografia">
+        <i class="fa-solid fa-id-card-clip"></i> Demografía, Régimen & Regiones
+      </button>
+      <button class="dash-tab" data-tab="tab-explorador">
+        <i class="fa-solid fa-table-list"></i> Explorador Clínico de Casos
+      </button>
+    </nav>
+
+    <!-- TAB 1: COHORTE & NEOPLASIAS (100% de la Base) -->
+    <section class="tab-pane active" id="tab-neoplasias">
+      <div class="dash-grid-2">
+        <!-- Top Neoplasias Bar Chart -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-ranking-star"></i> Top 10 Neoplasias Más Frecuentes en la
+              Base</div>
+            <span class="badge-eps">Casos & Tasas Reales</span>
+          </div>
+          <div class="chart-container" style="height: 360px;">
+            <canvas id="chart-top-neoplasias"></canvas>
+          </div>
+        </div>
+
+        <!-- Distribución por EPS & Prioridad -->
+        <div class="dash-stack">
+          <div class="panel-card">
+            <div class="panel-header">
+              <div class="panel-title"><i class="fa-solid fa-hospital-user"></i> Distribución por Aseguradora (EPS)
+              </div>
+            </div>
+            <div class="chart-container" style="height: 160px;">
+              <canvas id="chart-eps-pie"></canvas>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-header">
+              <div class="panel-title"><i class="fa-solid fa-shield-halved"></i> Proporción CAC (Priorizados vs No
+                Priorizados)</div>
+            </div>
+            <div class="chart-container" style="height: 160px;">
+              <canvas id="chart-prioridad-pie"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla Completa de los 25 Agrupadores -->
+      <div class="panel-card" style="margin-top: 1.5rem;">
+        <div class="panel-header">
+          <div class="panel-title"><i class="fa-solid fa-table"></i> Censo Oncológico Detallado por Agrupador Tumoral
+            (100% Base de Datos)</div>
+          <input type="text" id="table-search-agrupador" placeholder="Buscar neoplasia en la base..."
+            class="table-search-input">
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="table-all-agrupadores">
+            <thead>
+              <tr>
+                <th>Código & Neoplasia (Agrupador)</th>
+                <th>Prioridad CAC</th>
+                <th>Pacientes / Casos</th>
+                <th>Tasa x 100k</th>
+                <th>% Cohorte</th>
+                <th>Distribución Relativa</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-agrupadores">
+              <!-- Renderizado dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: BENCHMARKING OFICIAL CAC / INC (Evidencia y Guías Colombianas) -->
+    <section class="tab-pane" id="tab-benchmarking">
+
+      <!-- Banner de Hallazgos Clave -->
+      <div class="benchmark-hero">
+        <div class="hero-header">
+          <i class="fa-solid fa-certificate" style="color: var(--secondary); font-size: 1.5rem;"></i>
+          <div>
+            <h3 style="font-size: 1.15rem; color: #fff; font-weight: 700;">Contraste de Calidad Oncológica vs Estándares
+              de Consenso CAC & INC</h3>
+            <p style="font-size: 0.83rem; color: var(--text-muted); margin-top: 2px;">
+              Indicadores calculados directamente de los pacientes de INOOS contrastados contra los informes oficiales
+              de la <strong>Cuenta de Alto Costo (CAC)</strong> y el <strong>Instituto Nacional de Cancerología
+                (INC)</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Tarjetas de Benchmarking Comparativo -->
+      <div class="benchmark-grid">
+
+        <!-- Tarjeta 1: Detección Temprana -->
+        <div class="benchmark-card">
+          <div class="bm-header">
+            <span class="bm-title"><i class="fa-solid fa-stairs"></i> Diagnóstico en Estadios Tempranos (I y II)</span>
+            <span id="bm-badge-temprano" class="bm-badge ok">Por encima de media país</span>
+          </div>
+          <div class="bm-values">
+            <div class="bm-val-box">
+              <span class="bm-label">Cohorte INOOS</span>
+              <strong class="bm-val highlight" id="bm-val-temprano">-</strong>
+            </div>
+            <div class="bm-val-box">
+              <span class="bm-label">Promedio Colombia (CAC)</span>
+              <strong class="bm-val">49.15%</strong>
+            </div>
+            <div class="bm-val-box">
+              <span class="bm-label">Meta Consenso CAC</span>
+              <strong class="bm-val target">&ge; 60.0%</strong>
+            </div>
+          </div>
+          <div class="bm-progress-bg">
+            <div id="bm-bar-temprano" class="bm-progress-fill" style="width: 57.7%; background: var(--secondary);">
+            </div>
+          </div>
+          <p class="bm-desc" id="bm-desc-temprano">
+            La cohorte INOOS se sitúa <strong>+8.5% por encima del promedio nacional de Colombia</strong> reportado por
+            la CAC (49.15%), posicionándose muy cerca de la meta nacional del 60%.
+          </p>
+        </div>
+
+        <!-- Tarjeta 2: Oportunidad Dx a Primera Consulta -->
+        <div class="benchmark-card">
+          <div class="bm-header">
+            <span class="bm-title"><i class="fa-solid fa-clock"></i> Oportunidad Dx &rarr; Primera Consulta
+              Médica</span>
+            <span id="bm-badge-consulta" class="bm-badge ok">Supera media nacional</span>
+          </div>
+          <div class="bm-values">
+            <div class="bm-val-box">
+              <span class="bm-label">Mediana INOOS</span>
+              <strong class="bm-val highlight" id="bm-val-consulta">-</strong>
+            </div>
+            <div class="bm-val-box">
+              <span class="bm-label">Promedio Nacional CAC</span>
+              <strong class="bm-val">38.0 días</strong>
+            </div>
+            <div class="bm-val-box">
+              <span class="bm-label">Meta Consenso CAC</span>
+              <strong class="bm-val target">&le; 15.0 días</strong>
+            </div>
+          </div>
+          <div class="bm-progress-bg">
+            <div id="bm-bar-consulta" class="bm-progress-fill" style="width: 65%; background: #60A5FA;"></div>
+          </div>
+          <p class="bm-desc" id="bm-desc-consulta">
+            La mediana de atención en INOOS es de <strong>29.5 días</strong> (8.5 días más rápida que el promedio
+            nacional de 38 días). El <strong>50.9%</strong> de los pacientes logra consulta en &le; 30 días.
+          </p>
+        </div>
+
+        <!-- Tarjeta 3: Procesamiento Anatomopatológico -->
+        <div class="benchmark-card">
+          <div class="bm-header">
+            <span class="bm-title"><i class="fa-solid fa-microscope"></i> Tiempo de Reporte de Patología (Toma a
+              Reporte)</span>
+            <span class="bm-badge ok">&iexcl;Cumple Meta INC!</span>
+          </div>
+          <div class="bm-values">
+            <div class="bm-val-box">
+              <span class="bm-label">Mediana INOOS</span>
+              <strong class="bm-val highlight" id="bm-val-patologia">-</strong>
+            </div>
+            <div class="bm-val-box">
+              <span class="bm-label">Estándar INC Colombia</span>
+              <strong class="bm-val target">&le; 10.0 días</strong>
+            </div>
+            <div class="bm-val-box">
+              <span class="bm-label">Cumplimiento en Base</span>
+              <strong class="bm-val" id="bm-val-pat-cumple">-</strong>
+            </div>
+          </div>
+          <div class="bm-progress-bg">
+            <div class="bm-progress-fill" style="width: 77.8%; background: #34D399;"></div>
+          </div>
+          <p class="bm-desc">
+            Excelente rendimiento en oportunidad diagnóstica: con una <strong>mediana de 7.0 días</strong>, más del 77%
+            de las biopsias son reportadas dentro del estándar nacional del Instituto Nacional de Cancerología.
+          </p>
+        </div>
+
+        <!-- Tarjeta 4: Cáncer de Mama & HER2 -->
+        <div class="benchmark-card">
+          <div class="bm-header">
+            <span class="bm-title"><i class="fa-solid fa-dna"></i> Biomarcador HER2 en Mama (Inmunohistoquímica)</span>
+            <span class="bm-badge info">Coherente con INC</span>
+          </div>
+          <div class="bm-values">
+            <div class="bm-val-box">
+              <span class="bm-label">Positividad INOOS</span>
+              <strong class="bm-val highlight" id="bm-val-her2">-</strong>
+            </div>
+            <div class="bm-val-box">
+              <span class="bm-label">Rango Esperado INC</span>
+              <strong class="bm-val target">15% - 25%</strong>
+            </div>
+            <div class="bm-val-box">
+              <span class="bm-label">Casos HER2 (+++)</span>
+              <strong class="bm-val" id="bm-val-her2-casos">-</strong>
+            </div>
+          </div>
+          <div class="bm-progress-bg">
+            <div class="bm-progress-fill" style="width: 85%; background: var(--accent);"></div>
+          </div>
+          <p class="bm-desc">
+            La tasa de positividad HER2 (+++) calculada de <strong>23.7%</strong> se ubica con precisión milimétrica
+            dentro de la distribución epidemiológica de cáncer de mama en Colombia publicada por el INC.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Comparativo por Régimen: Equidad en Salud (CAC) -->
+      <div class="panel-card" style="margin-top: 1.5rem;">
+        <div class="panel-header">
+          <div class="panel-title"><i class="fa-solid fa-scale-balanced"></i> Brecha de Aseguramiento: Régimen
+            Contributivo vs Subsidiado en la Cohorte INOOS</div>
+          <span class="badge-eps">Hallazgo Crítico CAC</span>
+        </div>
+        <p style="font-size: 0.83rem; color: var(--text-muted); margin-bottom: 1.2rem;">
+          Los informes epidemiológicos de la Cuenta de Alto Costo documentan que el Régimen Subsidiado suele enfrentar
+          mayores barreras de diagnóstico tardío. A continuación se presentan las cifras calculadas de los pacientes de
+          INOOS:
+        </p>
+        <div class="dash-grid-2">
+          <div class="chart-container" style="height: 280px;">
+            <canvas id="chart-benchmark-regimen"></canvas>
+          </div>
+          <div class="regimen-summary-box">
+            <h4 style="color: #fff; font-size: 0.95rem; margin-bottom: 0.6rem;"><i class="fa-solid fa-stethoscope"></i>
+              Análisis Comparativo de Equidad</h4>
+            <div class="regimen-stat-line">
+              <span>Estadios Tempranos (Contributivo):</span>
+              <strong style="color: #34D399;" id="reg-c-temprano">59.7%</strong>
+            </div>
+            <div class="regimen-stat-line">
+              <span>Estadios Tempranos (Subsidiado):</span>
+              <strong style="color: #FBBF24;" id="reg-s-temprano">54.8%</strong>
+            </div>
+            <div class="regimen-stat-line">
+              <span>Metástasis al Diagnóstico (Subsidiado):</span>
+              <strong style="color: #F87171;" id="reg-s-meta">12.0% (vs 10.9% en Contributivo)</strong>
+            </div>
+            <div class="regimen-stat-line">
+              <span>Mediana de espera a consulta médica:</span>
+              <strong style="color: #60A5FA;">Subsidiado: 25 días | Contributivo: 31 días</strong>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.8rem; line-height: 1.4;">
+              * <em>Conclusión:</em> El Régimen Subsidiado en INOOS presenta una ágil respuesta en primera consulta (25
+              días), pero una mayor carga de enfermedad avanzada, validando la necesidad de fortalecer los programas de
+              tamización temprana en EPS subsidiadas (Emssanar / Familiar).
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 3: ESTADIFICACIÓN & OPORTUNIDAD REAL (Calculada de la base) -->
+    <section class="tab-pane" id="tab-oportunidad">
+      <div class="dash-grid-2">
+
+        <!-- Distribución de Estadios Clínicos -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-stairs"></i> Clasificación del Estadio Clínico (100% Base de
+              Datos)</div>
+            <span class="badge-eps">Columna CLASIFICACION_DEL_ESTADIO</span>
+          </div>
+          <div class="chart-container" style="height: 280px;">
+            <canvas id="chart-estadios-pie"></canvas>
+          </div>
+        </div>
+
+        <!-- Histograma de Oportunidad Dx a Consulta -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-stopwatch-20"></i> Tiempos Dx &rarr; Primera Consulta Médica
+              Efectiva</div>
+            <span class="badge-eps">Calculado paciente a paciente</span>
+          </div>
+          <div class="chart-container" style="height: 280px;">
+            <canvas id="chart-oportunidad-histogram"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Intención Inicial de Tratamiento (Columna 40) -->
+      <div class="dash-grid-2" style="margin-top: 1.5rem;">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-bullseye"></i> Intención Inicial del Tratamiento (Columna 40
+              de la Base)</div>
+            <span class="badge-eps">Curativo vs Paliativo</span>
+          </div>
+          <div class="chart-container" style="height: 240px;">
+            <canvas id="chart-intencion-tto"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-chart-column"></i> Evolución Mensual de Ingresos a la Cohorte
+            </div>
+            <span class="badge-eps">Por Fecha de Ingreso en la Base</span>
+          </div>
+          <div class="chart-container" style="height: 240px;">
+            <canvas id="chart-ingresos-mensuales"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: DEMOGRAFÍA & REGIONES (100% de la Base) -->
+    <section class="tab-pane" id="tab-demografia">
+      <div class="dash-grid-2">
+        <!-- Pirámide de Edad y Sexo -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-users"></i> Pirámide Etaria por Sexo (Femenino vs Masculino)
+            </div>
+            <span class="badge-eps">Columnas EDAD y 8SEXO</span>
+          </div>
+          <div class="chart-container" style="height: 320px;">
+            <canvas id="chart-piramide-edad"></canvas>
+          </div>
+        </div>
+
+        <!-- Distribución Territorial -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-map-location-dot"></i> Distribución Territorial por
+              Departamento</div>
+            <span class="badge-eps">Columna DEPARTAMENTORESIDENCIA</span>
+          </div>
+          <div class="chart-container" style="height: 320px;">
+            <canvas id="chart-departamentos"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-grid-2" style="margin-top: 1.5rem;">
+        <!-- Distribución por Régimen -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-hand-holding-medical"></i> Distribución por Régimen de
+              Afiliación</div>
+            <span class="badge-eps">Columna REGIMEN</span>
+          </div>
+          <div class="chart-container" style="height: 240px;">
+            <canvas id="chart-regimen-pie"></canvas>
+          </div>
+        </div>
+
+        <!-- Top Municipios -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-city"></i> Top 8 Municipios de Residencia</div>
+            <span class="badge-eps">Columna MUNICIPIODERESIDENCIA</span>
+          </div>
+          <div class="chart-container" style="height: 240px;">
+            <canvas id="chart-municipios"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: EXPLORADOR CLÍNICO DE CASOS (DATA GRID) -->
+    <section class="tab-pane" id="tab-explorador">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title"><i class="fa-solid fa-magnifying-glass"></i> Explorador Clínico de Pacientes
+            (Primeros 100 Registros de la Base)</div>
+          <span style="font-size: 0.82rem; color: var(--text-muted);">Visualizando columnas directas de la base</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID Paciente</th>
+                <th>Asegurador (EPS)</th>
+                <th>Régimen</th>
+                <th>Neoplasia (Agrupador)</th>
+                <th>Prioridad CAC</th>
+                <th>Estadio Clínico</th>
+                <th>Días Dx &rarr; Consulta</th>
+                <th>Edad</th>
+                <th>Sexo</th>
+                <th>Departamento</th>
+                <th>Intención Inicial</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-pacientes-sample">
+              <!-- Renderizado dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    INOOS &copy; 2026 - Instituto Nacional de Oncología y Oportunidad en Salud | Tablero de Inteligencia Clínica &
+    Benchmarking CAC / INC
+  </footer>
+
+  <!-- Dashboard Script -->
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+
+</html>

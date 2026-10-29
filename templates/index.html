@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>INOOS | Automatización del Informe de Junta Directiva</title>
+  <meta name="description" content="Plataforma institucional de ingeniería clínica para la generación automatizada de informes de Junta Directiva en PowerPoint a partir de bases oncológicas Excel.">
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="brand-container">
+      <div class="brand-badge">INOOS</div>
+      <div>
+        <div class="brand-title">Generador Automatizado de Informes de Junta</div>
+        <div class="brand-subtitle">Instituto Nacional de Oncología y Oportunidad en Salud</div>
+      </div>
+    </div>
+    
+    <!-- Module Navigation -->
+    <div class="nav-links">
+      <a href="/" class="nav-btn active"><i class="fa-solid fa-file-powerpoint"></i> Generador PPTX</a>
+      <a href="/dashboard" class="nav-btn"><i class="fa-solid fa-chart-pie"></i> Tablero de Control</a>
+    </div>
+
+    <div class="status-badge" id="system-status">
+      <div class="status-dot"></div>
+      <span>Motor Clínico Activo</span>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <div class="dashboard-grid">
+      
+      <!-- Control Panel (Left Column) -->
+      <section class="glass-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-sliders"></i> Configuración de Emisión
+          </div>
+          <span class="badge-eps">Versión 2.0</span>
+        </div>
+
+        <!-- Excel File Upload / Selector -->
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-file-excel"></i> Base de Datos Fuente</label>
+          <div class="upload-zone" id="drop-zone">
+            <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+            <div class="upload-title" id="file-display-name">{{ default_excel }}</div>
+            <div class="upload-desc">Arrastra un nuevo archivo Excel o haz clic para examinar</div>
+            <input type="file" id="file-input" accept=".xlsx,.xlsm" style="display: none;">
+          </div>
+        </div>
+
+        <!-- Selector rápido de bases cargadas -->
+        <div class="form-group" id="available-files-container" style="margin-top: -0.4rem; margin-bottom: 1.2rem;">
+          <label class="form-label" style="font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+            <span><i class="fa-solid fa-folder-open"></i> Bases disponibles en el servidor:</span>
+            <span id="files-badge" class="badge-eps" style="font-size: 0.7rem; padding: 2px 6px;">Cargando...</span>
+          </label>
+          <select class="form-control" id="select-active-file" style="font-size: 0.84rem; padding: 7px 10px; background: rgba(15, 23, 42, 0.7); border-color: rgba(255,255,255,0.15);">
+            <option value="">Cargando archivos...</option>
+          </select>
+        </div>
+
+        <!-- Mes y Año Selector -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="select-mes"><i class="fa-solid fa-calendar"></i> Mes de Corte</label>
+            <select class="form-control" id="select-mes">
+              <option value="Enero">Enero</option>
+              <option value="Febrero">Febrero</option>
+              <option value="Marzo">Marzo</option>
+              <option value="Abril">Abril</option>
+              <option value="Mayo">Mayo</option>
+              <option value="Junio">Junio</option>
+              <option value="Julio">Julio</option>
+              <option value="Agosto">Agosto</option>
+              <option value="Septiembre" selected>Septiembre</option>
+              <option value="Octubre">Octubre</option>
+              <option value="Noviembre">Noviembre</option>
+              <option value="Diciembre">Diciembre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="input-ano"><i class="fa-solid fa-clock"></i> Año</label>
+            <input type="number" class="form-control" id="input-ano" value="2026" min="2024" max="2035">
+          </div>
+        </div>
+
+        <!-- Plantilla PPTX Info -->
+        <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--card-border);">
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">
+            <i class="fa-solid fa-file-powerpoint" style="color: #E27396;"></i> Plantilla Maestra Corporativa
+          </div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #fff;">
+            template_junta.pptx <span style="font-size: 0.75rem; color: #34D399;">(16.1 MB, 115 slides)</span>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar-container" id="progress-container">
+          <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
+          <button class="btn btn-primary" id="btn-generate">
+            <i class="fa-solid fa-bolt"></i> Generar Informe PPTX
+          </button>
+          
+          <button class="btn btn-success" id="btn-download" style="display: none;">
+            <i class="fa-solid fa-download"></i> Descargar Presentación PPTX
+          </button>
+
+          <button class="btn" id="btn-verify" style="background: rgba(255,255,255,0.08); color: #fff;">
+            <i class="fa-solid fa-stethoscope"></i> Ejecutar Auditoría de Concordancia
+          </button>
+        </div>
+
+        <!-- Terminal Console -->
+        <div class="terminal-window" id="terminal-console">
+          <div class="term-line info">[SISTEMA] Motor INOOS inicializado.</div>
+          <div class="term-line success">[OK] Base de datos activa: 9,735 registros clínicos.</div>
+          <div class="term-line">[INFO] Duplicados clínicos preservados por normatividad CAC.</div>
+        </div>
+      </section>
+
+      <!-- Dashboard & Analytics (Right Column) -->
+      <section class="glass-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-chart-pie"></i> Métricas Clínicas de la Cohorte
+          </div>
+          <span style="font-size: 0.82rem; color: var(--text-muted);" id="last-update">Corte: Septiembre 2026</span>
+        </div>
+
+        <!-- KPI Executive Boxes -->
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <div class="kpi-label">Cohorte Activa Total</div>
+            <div class="kpi-value" id="kpi-total">9,735</div>
+            <div class="kpi-sub"><i class="fa-solid fa-check-double"></i> 100% Neoplasias CAC</div>
+          </div>
+          <div class="kpi-box secondary">
+            <div class="kpi-label">Priorizados CAC</div>
+            <div class="kpi-value" id="kpi-priorizados">5,253</div>
+            <div class="kpi-sub" style="color: #60A5FA;"><i class="fa-solid fa-percentage"></i> 53.96% de la cohorte</div>
+          </div>
+          <div class="kpi-box accent">
+            <div class="kpi-label">No Priorizados</div>
+            <div class="kpi-value" id="kpi-no-priorizados">4,482</div>
+            <div class="kpi-sub" style="color: #F472B6;"><i class="fa-solid fa-chart-simple"></i> 46.04% de la cohorte</div>
+          </div>
+        </div>
+
+        <!-- Tabs / Table Section -->
+        <div style="margin-top: 1.5rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; color: #fff;">
+            <i class="fa-solid fa-hospital-user" style="color: var(--secondary);"></i> Distribución por Asegurador (EPS)
+          </h4>
+          
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Asegurador</th>
+                <th>Pacientes / Tumores</th>
+                <th>Población Asignada</th>
+                <th>Tasa Prevalencia</th>
+                <th>% Cohorte</th>
+              </tr>
+            </thead>
+            <tbody id="table-eps-body">
+              <tr>
+                <td><span class="badge-eps">EMSSANAR</span></td>
+                <td><strong>4,303</strong></td>
+                <td>292,704</td>
+                <td>1,470.1 x 100k</td>
+                <td>44.2%</td>
+              </tr>
+              <tr>
+                <td><span class="badge-eps">SALUD TOTAL</span></td>
+                <td><strong>3,173</strong></td>
+                <td>205,650</td>
+                <td>1,542.9 x 100k</td>
+                <td>32.6%</td>
+              </tr>
+              <tr>
+                <td><span class="badge-eps">SANITAS EPS</span></td>
+                <td><strong>2,060</strong></td>
+                <td>90,503</td>
+                <td>2,276.2 x 100k</td>
+                <td>21.2%</td>
+              </tr>
+              <tr>
+                <td><span class="badge-eps">FOMAG</span></td>
+                <td><strong>118</strong></td>
+                <td>25,471</td>
+                <td>463.3 x 100k</td>
+                <td>1.2%</td>
+              </tr>
+              <tr>
+                <td><span class="badge-eps">EPS FAMILIAR</span></td>
+                <td><strong>74</strong></td>
+                <td>8,993</td>
+                <td>822.9 x 100k</td>
+                <td>0.8%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Top Cancers Section -->
+        <div style="margin-top: 1.8rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.8rem; color: #fff;">
+            <i class="fa-solid fa-dna" style="color: var(--primary);"></i> Top 5 Neoplasias Más Frecuentes
+          </h4>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;" id="top-cancers-list">
+            <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.85rem;">16= Otros tumores de la piel</span>
+              <strong style="color: #34D399;">2,348 casos</strong>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.85rem;">1= CAC Mama</span>
+              <strong style="color: #60A5FA;">1,851 casos</strong>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.85rem;">2= CAC Próstata</span>
+              <strong style="color: #F472B6;">1,024 casos</strong>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.85rem;">3= CAC Cérvix</span>
+              <strong style="color: #FBBF24;">967 casos</strong>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    INOOS &copy; 2026 - Instituto Nacional de Oncología y Oportunidad en Salud | Automatización de Junta Directiva
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
