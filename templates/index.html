@@ -22,17 +22,20 @@
   <!-- Navigation Bar -->
   <nav class="navbar">
     <div class="brand-container">
-      <div class="brand-badge">INOOS</div>
-      <div>
-        <div class="brand-title">Generador Automatizado de Informes de Junta</div>
-        <div class="brand-subtitle">Instituto Nacional de Oncología y Oportunidad en Salud</div>
+      <div class="brand-logo-wrapper">
+        <img src="{{ url_for('static', filename='img/logo-inoos.png') }}" onerror="this.src='https://inoos.com.co/wp-content/uploads/2025/02/inoos-instituto-oncologico-ospedale.png'" alt="INOOS Logo" class="brand-logo-img">
+        <div class="brand-company-sub">Instituto Oncológico Ospedale</div>
+      </div>
+      <div class="brand-divider"></div>
+      <div class="brand-text-block">
+        <div class="brand-title">Generador de Informes de Junta</div>
       </div>
     </div>
     
     <!-- Module Navigation -->
     <div class="nav-links">
       <a href="/" class="nav-btn active"><i class="fa-solid fa-file-powerpoint"></i> Generador PPTX</a>
-      <a href="/dashboard" class="nav-btn"><i class="fa-solid fa-chart-pie"></i> Tablero de Control</a>
+      <a href="/dashboard" class="nav-btn"><i class="fa-solid fa-chart-pie"></i> Cohorte Oncológica</a>
     </div>
 
     <div class="status-badge" id="system-status">
@@ -255,7 +258,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    INOOS &copy; 2026 - Instituto Nacional de Oncología y Oportunidad en Salud | Automatización de Junta Directiva
+    INOOS &copy; 2026 - Instituto Oncológico Ospedale SAS | Automatización de Junta Directiva
   </footer>
 
   <!-- Scripts -->

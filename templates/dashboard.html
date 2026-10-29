@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>INOOS | Tablero de Inteligencia Clínica y Benchmarking CAC / INC</title>
+  <title>INOOS | Cohorte Oncológica</title>
   <meta name="description"
-    content="Tablero analítico multidimensional de la cohorte oncológica INOOS con indicadores calculados 100% de la base y benchmarking oficial de la Cuenta de Alto Costo e Instituto Nacional de Cancerología.">
+    content="Tablero analítico multidimensional de la Cohorte Oncológica INOOS - Instituto Oncológico Ospedale con indicadores calculados 100% de la base y benchmarking oficial.">
 
   <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,17 +37,20 @@
   <!-- Navigation Bar -->
   <nav class="navbar">
     <div class="brand-container">
-      <div class="brand-badge">INOOS</div>
-      <div>
-        <div class="brand-title">Inteligencia Clínica & Benchmarking CAC / INC</div>
-        <div class="brand-subtitle">Instituto Nacional de Oncología y Oportunidad en Salud</div>
+      <div class="brand-logo-wrapper">
+        <img src="{{ url_for('static', filename='img/logo-inoos.png') }}" onerror="this.src='https://inoos.com.co/wp-content/uploads/2025/02/inoos-instituto-oncologico-ospedale.png'" alt="INOOS Logo" class="brand-logo-img">
+        <div class="brand-company-sub">Instituto Oncológico Ospedale</div>
+      </div>
+      <div class="brand-divider"></div>
+      <div class="brand-text-block">
+        <div class="brand-title">Cohorte Oncológica</div>
       </div>
     </div>
 
     <!-- Module Navigation Links -->
     <div class="nav-links">
       <a href="/" class="nav-btn"><i class="fa-solid fa-file-powerpoint"></i> Generador PPTX</a>
-      <a href="/dashboard" class="nav-btn active"><i class="fa-solid fa-chart-pie"></i> Tablero de Control</a>
+      <a href="/dashboard" class="nav-btn active"><i class="fa-solid fa-chart-pie"></i> Cohorte Oncológica</a>
     </div>
 
     <div class="status-badge" id="system-status">
@@ -187,16 +190,6 @@
           <div class="kpi-num" id="card-temprano-pct">-</div>
           <div class="kpi-extra" id="card-temprano-sub"><i class="fa-solid fa-flag-checkered"></i> Meta CAC: &ge; 60%
           </div>
-        </div>
-      </div>
-
-      <div class="kpi-card accent">
-        <div class="kpi-icon"><i class="fa-solid fa-stopwatch"></i></div>
-        <div>
-          <div class="kpi-meta">Oportunidad Dx &rarr; Consulta</div>
-          <div class="kpi-num" id="card-oportunidad-dias">-</div>
-          <div class="kpi-extra" id="card-oportunidad-sub"><i class="fa-solid fa-clock"></i> Mediana en días (Meta CAC:
-            &le; 15d)</div>
         </div>
       </div>
 
@@ -633,8 +626,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    INOOS &copy; 2026 - Instituto Nacional de Oncología y Oportunidad en Salud | Tablero de Inteligencia Clínica &
-    Benchmarking CAC / INC
+    INOOS &copy; 2026 - Instituto Oncológico Ospedale SAS | Cohorte Oncológica
   </footer>
 
   <!-- Dashboard Script -->
