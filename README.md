@@ -143,3 +143,4 @@ La aplicación se ejecutará por defecto en el puerto **5050** (con auto-asignac
 * **Organización**: Instituto Nacional de Oncología y Oportunidad en Salud (INOOS)
 * **Desarrollo**: Área de Analítica de Datos & Dirección Médica
 * **Año**: 2026
+
