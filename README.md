@@ -110,6 +110,24 @@ La aplicación se ejecutará por defecto en el puerto **5050** (con auto-asignac
 
 ---
 
+## ☁️ Despliegue en Render (Enlace en la Nube 24/7)
+
+La aplicación incluye los archivos `render.yaml` y `Procfile` preconfigurados para despliegue automático:
+
+1. Ve a [dashboard.render.com](https://dashboard.render.com/) e inicia sesión con tu cuenta de GitHub.
+2. Haz clic en **New +** y selecciona **Web Service** (o **Blueprint**).
+3. Conecta tu repositorio `metricsalud/informe-junta-inoos`.
+4. Render detectará automáticamente la configuración:
+   * **Runtime**: `Python 3`
+   * **Build Command**: `pip install -r requirements.txt`
+   * **Start Command**: `gunicorn app:app --workers 2 --timeout 120`
+   * **Plan**: `Free`
+5. Haz clic en **Deploy Web Service**.
+6. En 2-3 minutos tendrás tu enlace web oficial activo (ej: `https://inoos-informe-junta.onrender.com`).
+7. Una vez abierto en la nube, puedes subir tu archivo Excel directamente desde la pantalla de inicio para activar todos los tableros e informes.
+
+---
+
 ## 📂 Estructura del Proyecto
 
 ```text

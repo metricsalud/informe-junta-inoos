@@ -306,7 +306,11 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.error('[INOOS Dashboard] Error en refreshDashboard:', err);
       if (cohortCounter) {
-        cohortCounter.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#EF4444;"></i> Error de conexión con el motor: ${err.message}`;
+        if (err.message && (err.message.includes('404') || err.message.includes('No encontrado') || err.message.includes('no disponible'))) {
+          cohortCounter.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="color:#60A5FA;"></i> Sin base de datos activa. <a href="/" style="color:#34D399;font-weight:700;text-decoration:underline;margin-left:5px;">Cargar archivo Excel aquí</a>`;
+        } else {
+          cohortCounter.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#EF4444;"></i> Error de conexión con el motor: ${err.message}`;
+        }
       }
     } finally {
       isFetching = false;
