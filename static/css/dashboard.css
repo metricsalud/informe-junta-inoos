@@ -167,15 +167,15 @@
   width: 100%;
 }
 
-/* Banner de KPIs Ejecutivos (5 Indicadores Principales) */
+/* Banner de KPIs Ejecutivos (6 Indicadores Principales) */
 .kpi-banner {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
   margin-bottom: 1.5rem;
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1500px) {
   .kpi-banner {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -226,6 +226,7 @@
 .kpi-card.secondary::before { background: var(--secondary); }
 .kpi-card.info::before { background: #60A5FA; }
 .kpi-card.accent::before { background: var(--accent); }
+.kpi-card.warning::before { background: #F59E0B; }
 .kpi-card.dark::before { background: #A78BFA; }
 
 .kpi-icon {
@@ -237,6 +238,7 @@
 .kpi-card.secondary .kpi-icon { color: var(--secondary); }
 .kpi-card.info .kpi-icon { color: #60A5FA; }
 .kpi-card.accent .kpi-icon { color: var(--accent); }
+.kpi-card.warning .kpi-icon { color: #F59E0B; }
 .kpi-card.dark .kpi-icon { color: #A78BFA; }
 
 .kpi-meta {

@@ -33,12 +33,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const cardTasaSub = document.getElementById('card-tasa-sub');
   const cardIncidencia = document.getElementById('card-incidencia-casos');
   const cardIncidenciaSub = document.getElementById('card-incidencia-sub');
+  const cardIngresosMes = document.getElementById('card-ingresos-mes');
+  const cardIngresosMesSub = document.getElementById('card-ingresos-mes-sub');
   const cardTemprano = document.getElementById('card-temprano-pct');
   const cardTempranoSub = document.getElementById('card-temprano-sub');
   const cardOportunidad = document.getElementById('card-oportunidad-dias');
   const cardOportunidadSub = document.getElementById('card-oportunidad-sub');
   const cardPrio = document.getElementById('card-priorizados');
   const cardPrioSub = document.getElementById('card-priorizados-sub');
+  const btnToggleTopChart = document.getElementById('btn-toggle-top-chart');
 
   // Tablas y Contenedores
   const tbodyAgrupadores = document.getElementById('tbody-agrupadores');
@@ -62,6 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Estado global
   let currentAgrupadoresList = [];
   let isFetching = false;
+  let lastTopNeoplasiasData = null;
+  let topChartOrientation = 'x'; // 'x' para barras verticales con línea por encima, 'y' para horizontal
 
   // Paleta de Colores Institucional INOOS
   const COLOR_LILA = '#8158A1';
@@ -70,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const COLOR_AZUL = '#60A5FA';
   const COLOR_VERDE = '#34D399';
   const COLOR_AMARILLO = '#FBBF24';
+  const COLOR_DORADO_CONTRASTE = '#FACC15'; // Amarillo/Oro Neón de Máximo Contraste Visual
   const COLOR_ROJO = '#EF4444';
   const COLOR_GRIS = 'rgba(255, 255, 255, 0.08)';
 
@@ -129,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const rawText = await res.text();
       const cleanText = rawText.replace(/:\s*NaN\b/g, ': null').replace(/:\s*Infinity\b/g, ': null');
       const data = JSON.parse(cleanText);
-      
+
       if (data.status === 'success' && data.options) {
         const opts = data.options;
         if (activeFileInd && opts.active_filename) activeFileInd.textContent = opts.active_filename;
@@ -206,6 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cardTotal && cardTotal.textContent === '-') cardTotal.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
     if (cardTasa && cardTasa.textContent === '-') cardTasa.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
     if (cardIncidencia && cardIncidencia.textContent === '-') cardIncidencia.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
+    if (cardIngresosMes && cardIngresosMes.textContent === '-') cardIngresosMes.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
     if (cardTemprano && cardTemprano.textContent === '-') cardTemprano.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
     if (cardOportunidad && cardOportunidad.textContent === '-') cardOportunidad.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
     if (cardPrio && cardPrio.textContent === '-') cardPrio.innerHTML = `<span style="font-size:1.5rem;opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i></span>`;
@@ -341,6 +348,18 @@ document.addEventListener('DOMContentLoaded', () => {
       cardIncidenciaSub.innerHTML = `<i class="fa-solid fa-arrows-split-up-and-left"></i> Prev: ${prevCount} (${kpis.prevalentes_pct || 0}%) | Tasa Inc: ${kpis.tasa_incidencia || 0}`;
     }
 
+    if (cardIngresosMes) {
+      const incMes = kpis.ingresos_mes_incidentes !== undefined ? Number(kpis.ingresos_mes_incidentes).toLocaleString() : '0';
+      const prevMes = kpis.ingresos_mes_prevalentes !== undefined ? Number(kpis.ingresos_mes_prevalentes).toLocaleString() : '0';
+      cardIngresosMes.textContent = `${incMes} Inc | ${prevMes} Prev`;
+    }
+    if (cardIngresosMesSub) {
+      const promInc = kpis.ingresos_promedio_incidentes || 0;
+      const promPrev = kpis.ingresos_promedio_prevalentes || 0;
+      const mesNombre = kpis.mes_corte_nombre || 'Corte';
+      cardIngresosMesSub.innerHTML = `<i class="fa-solid fa-chart-line"></i> ${mesNombre}: ${kpis.ingresos_mes_total || 0} | Prom: ${promInc} Inc/mes`;
+    }
+
     if (cardTemprano) cardTemprano.textContent = `${kpis.estadio_temprano_pct}%`;
     if (cardTempranoSub) cardTempranoSub.innerHTML = `<i class="fa-solid fa-flag-checkered"></i> Estadios I-II (Meta CAC: &ge; 60%)`;
 
@@ -358,49 +377,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Gráfico: Top 10 Neoplasias (Casos en Barras y Tasa de Prevalencia en Línea con Doble Eje Y)
+  // Gráfico: Top 10 Neoplasias (Casos en Barras y Tasa de Prevalencia en Línea de Alto Contraste)
   function updateTopNeoplasiasChart(topData) {
     if (!topData || !topData.labels) return;
+    lastTopNeoplasiasData = topData;
 
-    // Abreviar suavemente nombres extensos para una presentación pulida en el eje X
+    const isHorizontal = (topChartOrientation === 'y');
+
+    // Abreviar suavemente nombres extensos para una presentación pulida
     const displayLabels = topData.labels.map(l => {
       let clean = l.replace(/^Tumor(es)? Maligno(s)? de(l)?\s*/i, 'Cáncer ');
       if (clean.length > 24) return clean.slice(0, 22) + '...';
       return clean;
     });
 
-    chartTopNeoplasias = safeCreateChart('chart-top-neoplasias', chartTopNeoplasias, {
+    const chartConfig = {
       type: 'bar',
       data: {
-        labels: displayLabels,
+        labels: isHorizontal ? topData.labels : displayLabels,
         datasets: [
           {
             type: 'bar',
             label: 'Casos Totales (Barras)',
             data: topData.casos,
-            backgroundColor: 'rgba(71, 169, 161, 0.75)',
+            backgroundColor: 'rgba(71, 169, 161, 0.85)',
             hoverBackgroundColor: '#47A9A1',
             borderColor: '#47A9A1',
-            borderWidth: 1,
+            borderWidth: 1.5,
             borderRadius: 6,
-            yAxisID: 'y',
+            yAxisID: isHorizontal ? 'y' : 'y',
+            xAxisID: isHorizontal ? 'x' : 'x',
             order: 2
           },
           {
             type: 'line',
             label: 'Tasa Prevalencia x 100k (Línea)',
             data: topData.tasas,
-            borderColor: '#FBBF24',
-            backgroundColor: 'rgba(251, 191, 36, 0.15)',
-            borderWidth: 3,
-            pointRadius: 5,
-            pointHoverRadius: 8,
-            pointBackgroundColor: '#FBBF24',
-            pointBorderColor: '#0D0F18',
+            borderColor: COLOR_DORADO_CONTRASTE,
+            backgroundColor: 'rgba(250, 204, 21, 0.25)',
+            borderWidth: 3.5,
+            pointRadius: 6,
+            pointHoverRadius: 9,
+            pointBackgroundColor: COLOR_DORADO_CONTRASTE,
+            pointBorderColor: '#FFFFFF',
             pointBorderWidth: 2,
             tension: 0.3,
             fill: false,
-            yAxisID: 'y1',
+            yAxisID: isHorizontal ? 'y' : 'y1',
+            xAxisID: isHorizontal ? 'x1' : 'x',
             order: 1
           }
         ]
@@ -408,11 +432,33 @@ document.addEventListener('DOMContentLoaded', () => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        indexAxis: isHorizontal ? 'y' : 'x',
         interaction: {
           mode: 'index',
           intersect: false
         },
-        scales: {
+        scales: isHorizontal ? {
+          y: {
+            grid: { display: false },
+            ticks: { font: { size: 10, weight: '600' }, color: '#CBD5E1' }
+          },
+          x: {
+            type: 'linear',
+            position: 'bottom',
+            title: { display: true, text: 'Casos Totales (Pacientes)', color: '#47A9A1', font: { weight: '600', size: 11 } },
+            grid: { color: COLOR_GRIS },
+            ticks: { color: '#9DA3AE' },
+            beginAtZero: true
+          },
+          x1: {
+            type: 'linear',
+            position: 'top',
+            title: { display: true, text: 'Tasa x 100.000 Afiliados', color: COLOR_DORADO_CONTRASTE, font: { weight: '600', size: 11 } },
+            grid: { drawOnChartArea: false },
+            ticks: { color: COLOR_DORADO_CONTRASTE },
+            beginAtZero: true
+          }
+        } : {
           x: {
             grid: { color: 'rgba(255, 255, 255, 0.05)' },
             ticks: {
@@ -428,7 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
             position: 'left',
             title: {
               display: true,
-              text: 'Casos Totales',
+              text: 'Casos Totales (Pacientes)',
               color: '#47A9A1',
               font: { weight: '600', size: 11 }
             },
@@ -443,11 +489,11 @@ document.addEventListener('DOMContentLoaded', () => {
             title: {
               display: true,
               text: 'Tasa x 100.000 Afiliados',
-              color: '#FBBF24',
+              color: COLOR_DORADO_CONTRASTE,
               font: { weight: '600', size: 11 }
             },
             grid: { drawOnChartArea: false },
-            ticks: { color: '#FBBF24' },
+            ticks: { color: COLOR_DORADO_CONTRASTE },
             beginAtZero: true
           }
         },
@@ -463,22 +509,25 @@ document.addEventListener('DOMContentLoaded', () => {
           },
           tooltip: {
             callbacks: {
-              title: function(items) {
+              title: function (items) {
                 if (!items.length) return '';
                 const idx = items[0].dataIndex;
                 return topData.labels[idx] || items[0].label;
               },
-              label: function(context) {
+              label: function (context) {
+                const val = isHorizontal ? context.parsed.x : context.parsed.y;
                 if (context.dataset.type === 'line') {
-                  return ` ${context.dataset.label}: ${context.parsed.y.toLocaleString()} por 100k`;
+                  return ` ${context.dataset.label}: ${val.toLocaleString()} por 100k`;
                 }
-                return ` ${context.dataset.label}: ${context.parsed.y.toLocaleString()} pacientes`;
+                return ` ${context.dataset.label}: ${val.toLocaleString()} pacientes`;
               }
             }
           }
         }
       }
-    });
+    };
+
+    chartTopNeoplasias = safeCreateChart('chart-top-neoplasias', chartTopNeoplasias, chartConfig);
   }
 
   // Gráfico: Aseguradoras (EPS)
@@ -557,11 +606,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const maxCasos = list.length > 0 ? list[0].casos : 1;
 
     list.forEach(item => {
-      const isPrio = !item.agrupador.toLowerCase().includes('no priorizado') && 
-                     ['mama', 'próstata', 'cérvix', 'colorectal', 'estómago', 'pulmón', 'melanoma', 'hodgkin', 'leucemia']
-                     .some(k => item.agrupador.toLowerCase().includes(k));
-      
-      const badgePrio = isPrio ? 
+      const isPrio = !item.agrupador.toLowerCase().includes('no priorizado') &&
+        ['mama', 'próstata', 'cérvix', 'colorectal', 'estómago', 'pulmón', 'melanoma', 'hodgkin', 'leucemia']
+          .some(k => item.agrupador.toLowerCase().includes(k));
+
+      const badgePrio = isPrio ?
         `<span class="badge-eps" style="background: rgba(71, 169, 161, 0.2); color: #34D399;">Priorizado CAC</span>` :
         `<span class="badge-eps" style="background: rgba(226, 115, 150, 0.2); color: #F472B6;">No Priorizado</span>`;
 
@@ -776,25 +825,80 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // 4. Ingresos Mensuales
+    // 4. Ingresos Mensuales: Incidentes vs Prevalentes (Calculados de la Base)
     if (data.evolucion_mensual) {
+      const evo = data.evolucion_mensual;
       chartIngresos = safeCreateChart('chart-ingresos-mensuales', chartIngresos, {
         type: 'bar',
         data: {
-          labels: data.evolucion_mensual.meses,
-          datasets: [{
-            label: 'Ingresos a la Cohorte 2026',
-            data: data.evolucion_mensual.ingresos,
-            backgroundColor: COLOR_TURQUESA,
-            borderRadius: 6
-          }]
+          labels: evo.meses,
+          datasets: [
+            {
+              label: 'Incidentes (Nuevos)',
+              data: evo.ingresos_incidentes || [],
+              backgroundColor: COLOR_TURQUESA,
+              borderRadius: 4,
+              stack: 'ingresos'
+            },
+            {
+              label: 'Prevalentes (Existentes)',
+              data: evo.ingresos_prevalentes || [],
+              backgroundColor: COLOR_DORADO_CONTRASTE,
+              borderRadius: 4,
+              stack: 'ingresos'
+            },
+            {
+              type: 'line',
+              label: 'Total Ingresos al Mes',
+              data: evo.ingresos || [],
+              borderColor: '#38BDF8',
+              backgroundColor: 'rgba(56, 189, 248, 0.15)',
+              borderWidth: 2.5,
+              pointRadius: 4,
+              pointHoverRadius: 7,
+              pointBackgroundColor: '#38BDF8',
+              pointBorderColor: '#FFFFFF',
+              pointBorderWidth: 1.5,
+              tension: 0.3,
+              fill: false
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
           scales: {
-            y: { grid: { color: COLOR_GRIS } },
-            x: { grid: { display: false } }
+            y: {
+              grid: { color: COLOR_GRIS },
+              ticks: { color: '#9DA3AE' },
+              beginAtZero: true,
+              title: { display: true, text: 'Pacientes que Ingresan', color: '#9DA3AE', font: { size: 10, weight: '600' } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#CBD5E1', font: { weight: '600' } }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { boxWidth: 12, padding: 10, color: '#E2E8F0', font: { size: 11, weight: '600' } }
+            },
+            tooltip: {
+              callbacks: {
+                footer: function (items) {
+                  let total = 0;
+                  items.forEach(it => {
+                    if (it.dataset.type !== 'line') total += (it.parsed.y || 0);
+                  });
+                  return `Total Ingresos: ${total.toLocaleString()} pacientes`;
+                }
+              }
+            }
           }
         }
       });
@@ -982,6 +1086,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnRefresh) {
     btnRefresh.addEventListener('click', () => {
       refreshDashboard();
+    });
+  }
+
+  // Botón Alternar Orientación del Gráfico Top Neoplasias (Barras con Línea)
+  if (btnToggleTopChart) {
+    btnToggleTopChart.addEventListener('click', () => {
+      topChartOrientation = (topChartOrientation === 'x') ? 'y' : 'x';
+      console.log(`[INOOS Dashboard] Orientación cambiada a: ${topChartOrientation}`);
+      if (lastTopNeoplasiasData) {
+        updateTopNeoplasiasChart(lastTopNeoplasiasData);
+      }
     });
   }
 

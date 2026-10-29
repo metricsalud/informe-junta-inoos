@@ -28,8 +28,8 @@
   </script>
 
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20261029_2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=20261029_2">
 </head>
 
 <body>
@@ -87,9 +87,9 @@
       </div>
 
       <div class="filter-group">
-        <label for="filter-tipo-registro"><i class="fa-solid fa-layer-group"></i> Tipo Registro</label>
+        <label for="filter-tipo-registro"><i class="fa-solid fa-arrows-split-up-and-left"></i> Incidencia / Prevalencia</label>
         <select id="filter-tipo-registro" class="filter-select">
-          <option value="ALL">Todos (Prevalencia + Incidencia)</option>
+          <option value="ALL">Todas (Prevalencia + Incidencia)</option>
           <option value="Prevalencia">Prevalencia (Casos Existentes)</option>
           <option value="Incidencia">Incidencia (Casos Nuevos)</option>
         </select>
@@ -201,6 +201,15 @@
         </div>
       </div>
 
+      <div class="kpi-card warning" style="border-left: 4px solid #F59E0B;">
+        <div class="kpi-icon"><i class="fa-solid fa-calendar-check" style="color: #F59E0B;"></i></div>
+        <div>
+          <div class="kpi-meta">Ingresos / Mes (Inc vs Prev)</div>
+          <div class="kpi-num" id="card-ingresos-mes">-</div>
+          <div class="kpi-extra" id="card-ingresos-mes-sub"><i class="fa-solid fa-chart-line"></i> En corte activo: -</div>
+        </div>
+      </div>
+
       <div class="kpi-card info">
         <div class="kpi-icon"><i class="fa-solid fa-stairs"></i></div>
         <div>
@@ -249,7 +258,12 @@
           <div class="panel-header">
             <div class="panel-title"><i class="fa-solid fa-ranking-star"></i> Top 10 Neoplasias Más Frecuentes en la
               Base</div>
-            <span class="badge-eps"><i class="fa-solid fa-chart-column"></i> Casos (Barras) &amp; <i class="fa-solid fa-chart-line"></i> Tasa (Línea)</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span class="badge-eps"><i class="fa-solid fa-chart-column"></i> Casos (Barras) &amp; <i class="fa-solid fa-chart-line" style="color: #FACC15;"></i> Tasa (Línea)</span>
+              <button id="btn-toggle-top-chart" class="btn-filter-action" title="Alternar orientación vertical / horizontal" style="font-size: 0.72rem; padding: 2px 8px; height: 26px;">
+                <i class="fa-solid fa-arrows-rotate"></i> Alternar Vista
+              </button>
+            </div>
           </div>
           <div class="chart-container" style="height: 380px;">
             <canvas id="chart-top-neoplasias"></canvas>
@@ -542,11 +556,11 @@
 
         <div class="panel-card">
           <div class="panel-header">
-            <div class="panel-title"><i class="fa-solid fa-chart-column"></i> Evolución Mensual de Ingresos a la Cohorte
+            <div class="panel-title"><i class="fa-solid fa-calendar-days"></i> Ingresos Mensuales a la Cohorte (Incidentes vs Prevalentes)
             </div>
-            <span class="badge-eps">Por Fecha de Ingreso en la Base</span>
+            <span class="badge-eps"><i class="fa-solid fa-layer-group"></i> Nuevos vs Existentes por Mes</span>
           </div>
-          <div class="chart-container" style="height: 240px;">
+          <div class="chart-container" style="height: 250px;">
             <canvas id="chart-ingresos-mensuales"></canvas>
           </div>
         </div>
@@ -648,7 +662,7 @@
   </footer>
 
   <!-- Dashboard Script -->
-  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=20261029_2"></script>
 </body>
 
 </html>

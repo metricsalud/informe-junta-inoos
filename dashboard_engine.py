@@ -107,15 +107,16 @@ class DashboardEngine:
         else:
             df['ESTADIO_CLINICO'] = 'No Estadificado / Otro'
 
-        # 3. Tipo de Registro: Prevalencia vs Incidencia
-        if 'INCENCIA_O_PREVALENCIA' in raw.columns:
+        # 3. Tipo de Registro: Prevalencia vs Incidencia (Columna AB / Incidencia o Prevalencia)
+        col_inc = [c for c in raw.columns if ('INC' in str(c).upper() and 'PREV' in str(c).upper()) or 'INCIDENCIA' in str(c).upper() or 'INCENCIA_O_PREVALENCIA' in str(c).upper()]
+        if col_inc:
             def clean_tipo(val):
                 v = str(val).upper().strip()
                 if 'INCIDENCIA' in v: return 'Incidencia (Casos Nuevos)'
                 return 'Prevalencia (Casos Existentes)'
-            df['TIPO_REGISTRO'] = raw['INCENCIA_O_PREVALENCIA'].apply(clean_tipo)
+            df['TIPO_REGISTRO'] = raw[col_inc[0]].apply(clean_tipo)
         else:
-            df['TIPO_REGISTRO'] = 'Prevalencia'
+            df['TIPO_REGISTRO'] = 'Prevalencia (Casos Existentes)'
 
         # 4. Intención Inicial de Tratamiento (Columna 40)
         col_40 = [c for c in raw.columns if '40OBJETIVO' in c or '40' in c]
@@ -514,12 +515,42 @@ class DashboardEngine:
         }
 
         # ==========================================
-        # 10. Evolución Mensual (de las fechas de ingreso y diagnóstico)
+        # 10. Evolución Mensual: Ingresos de Incidentes vs Prevalentes por Mes
         # ==========================================
         meses_nombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
         df_ano_ing = df_sub[df_sub['ANO_INGRESO'] == self.engine.ano_corte]
+
+        df_ano_inc = df_ano_ing[df_ano_ing['TIPO_REGISTRO'].str.contains('Incidencia', case=False, na=False)]
+        df_ano_prev = df_ano_ing[df_ano_ing['TIPO_REGISTRO'].str.contains('Prevalencia', case=False, na=False)]
+
         ing_mes_counts = df_ano_ing['MES_INGRESO'].value_counts().to_dict()
+        inc_mes_counts = df_ano_inc['MES_INGRESO'].value_counts().to_dict()
+        prev_mes_counts = df_ano_prev['MES_INGRESO'].value_counts().to_dict()
+
         ingresos_serie = [int(ing_mes_counts.get(m, 0)) for m in range(1, 13)]
+        ingresos_incidentes_serie = [int(inc_mes_counts.get(m, 0)) for m in range(1, 13)]
+        ingresos_prevalentes_serie = [int(prev_mes_counts.get(m, 0)) for m in range(1, 13)]
+
+        # Meses con registros de ingreso en el año activo
+        meses_con_datos = [m for m in range(1, 13) if ing_mes_counts.get(m, 0) > 0]
+        n_meses_activos = len(meses_con_datos) if len(meses_con_datos) > 0 else 1
+
+        total_ing_ano = sum(ingresos_serie)
+        total_inc_ano = sum(ingresos_incidentes_serie)
+        total_prev_ano = sum(ingresos_prevalentes_serie)
+
+        prom_ing_mensual = round(total_ing_ano / n_meses_activos, 1)
+        prom_inc_mensual = round(total_inc_ano / n_meses_activos, 1)
+        prom_prev_mensual = round(total_prev_ano / n_meses_activos, 1)
+
+        MESES_DICT = {
+            'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5, 'junio': 6,
+            'julio': 7, 'agosto': 8, 'septiembre': 9, 'octubre': 10, 'noviembre': 11, 'diciembre': 12
+        }
+        mes_corte_num = MESES_DICT.get(str(self.engine.mes_corte).lower(), 9)
+        corte_ing_total = int(ing_mes_counts.get(mes_corte_num, 0))
+        corte_ing_inc = int(inc_mes_counts.get(mes_corte_num, 0))
+        corte_ing_prev = int(prev_mes_counts.get(mes_corte_num, 0))
 
         df_ano_dx = df_sub[df_sub['ANO_DX'] == self.engine.ano_corte]
         dx_mes_counts = df_ano_dx['MES_DX'].value_counts().to_dict()
@@ -576,6 +607,14 @@ class DashboardEngine:
                 'prevalentes_pct': prevalentes_pct,
                 'incidentes_count': incidentes_count,
                 'incidentes_pct': incidentes_pct,
+                'ingresos_mes_incidentes': corte_ing_inc,
+                'ingresos_mes_prevalentes': corte_ing_prev,
+                'ingresos_mes_total': corte_ing_total,
+                'ingresos_promedio_incidentes': prom_inc_mensual,
+                'ingresos_promedio_prevalentes': prom_prev_mensual,
+                'ingresos_promedio_total': prom_ing_mensual,
+                'mes_corte_nombre': str(self.engine.mes_corte),
+                'ano_corte': int(self.engine.ano_corte),
                 'estadio_temprano_pct': pct_temprano,
                 'estadio_tardio_pct': pct_tardio,
                 'estadio_metastasico_pct': pct_metastasico,
@@ -612,6 +651,19 @@ class DashboardEngine:
             'evolucion_mensual': {
                 'meses': meses_nombres,
                 'ingresos': ingresos_serie,
+                'ingresos_incidentes': ingresos_incidentes_serie,
+                'ingresos_prevalentes': ingresos_prevalentes_serie,
+                'promedios': {
+                    'incidentes': prom_inc_mensual,
+                    'prevalentes': prom_prev_mensual,
+                    'total': prom_ing_mensual
+                },
+                'mes_corte': {
+                    'mes': str(self.engine.mes_corte),
+                    'incidentes': corte_ing_inc,
+                    'prevalentes': corte_ing_prev,
+                    'total': corte_ing_total
+                },
                 'incidencia_casos': incidencia_casos,
                 'incidencia_tasas': incidencia_tasas
             },
