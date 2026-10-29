@@ -59,8 +59,8 @@ Plataforma integral de ingeniería de datos y visualización analítica oncológ
 
 ### 1. Clonar el Repositorio
 ```bash
-git clone https://github.com/TU_USUARIO/TU_REPOSITORIO.git
-cd TU_REPOSITORIO
+git clone https://github.com/metricsalud/informe-junta-inoos.git
+cd informe-junta-inoos
 ```
 
 ### 2. Crear y Activar Entorno Virtual
